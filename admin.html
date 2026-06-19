@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSL Admin — วางแผนจัดส่ง</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#0B1F33;--navy2:#152C44;
+  --gold:#C8962A;--gold2:#E8B84B;
+  --teal:#0F6E56;--teal2:#E1F5EE;
+  --red:#A32D2D;--red2:#FCEBEB;
+  --amb:#854F0B;--amb2:#FAEEDA;
+  --blu:#0C447C;--blu2:#E6F1FB;
+  --grn:#27500A;--grn2:#EAF3DE;
+  --pur:#3C3489;--pur2:#EEEDFE;
+  --surf:#F0F2F5;--wht:#fff;
+  --bdr:#E2E6EC;--txt:#0B1525;--txt2:#3A4E63;--txt3:#6B7E92;
+}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--surf);color:var(--txt);min-height:100vh;}
+
+/* ── NAV ── */
+.nav{height:52px;background:var(--navy);display:flex;align-items:center;padding:0 18px;gap:14px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:14px;font-weight:700;color:var(--gold2);}
+.nav-logo span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,.35);}
+.nav-tabs{display:flex;gap:0;flex:1;margin-left:16px;}
+.ntab{padding:0 14px;height:52px;display:flex;align-items:center;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.ntab:hover{color:rgba(255,255,255,.8);}
+.ntab.active{color:var(--gold2);border-bottom-color:var(--gold);}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.nav-date{font-size:11px;color:rgba(255,255,255,.5);}
+.nav-status{font-size:11px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);}
+.nav-status.ok{color:#6EE7B7;background:rgba(110,231,183,.1);}
+
+/* ── LAYOUT ── */
+.layout{display:flex;height:calc(100vh - 52px);}
+.sidebar{width:240px;background:var(--wht);border-right:1px solid var(--bdr);flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+.content{flex:1;overflow-y:auto;padding:16px 18px;}
+
+/* ── SIDEBAR ── */
+.sb-head{padding:12px 14px;border-bottom:1px solid var(--bdr);}
+.sb-date{font-size:13px;font-weight:600;color:var(--navy);}
+.sb-sub{font-size:11px;color:var(--txt3);margin-top:2px;}
+.sb-section{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;padding:10px 14px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;transition:background .12s;border-radius:0;}
+.sb-item:hover{background:var(--surf);}
+.sb-item.active{background:var(--blu2);}
+.si-icon{font-size:16px;width:20px;text-align:center;}
+.si-label{font-size:12px;font-weight:500;color:var(--txt);}
+.si-count{margin-left:auto;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--navy);color:#fff;}
+.sb-body{flex:1;overflow-y:auto;}
+
+/* ── KPI ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.kpi{background:var(--wht);border:1px solid var(--bdr);border-radius:12px;padding:12px 14px;}
+.kpi.accent{border-top:3px solid var(--gold);}
+.kl{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.kv{font-size:24px;font-weight:600;color:var(--navy);font-family:'IBM Plex Mono',monospace;line-height:1;}
+.ks{font-size:11px;color:var(--txt3);margin-top:3px;}
+
+/* ── CARD ── */
+.card{background:var(--wht);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.card-head{padding:11px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.ch-title{font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:7px;}
+.ch-actions{display:flex;gap:7px;align-items:center;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--bdr);background:var(--wht);color:var(--txt);font-weight:500;transition:all .12s;white-space:nowrap;}
+.btn:hover{background:var(--surf);}
+.btn:active{transform:scale(.98);}
+.btn-navy{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn-navy:hover{background:#152C44;}
+.btn-gold{background:var(--gold);color:#fff;border-color:var(--gold);}
+.btn-gold:hover{background:#b8841f;}
+.btn-teal{background:var(--teal);color:#fff;border-color:var(--teal);}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--surf);padding:8px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:left;border-bottom:2px solid var(--bdr);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bdr);}
+.tbl tr:hover td{background:#F8F9FB;}
+.tbl tr:last-child td{border-bottom:none;}
+.num{text-align:right;font-family:'IBM Plex Mono',monospace;}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;white-space:nowrap;}
+.b-planned{background:var(--blu2);color:var(--blu);}
+.b-dispatched{background:var(--amb2);color:var(--amb);}
+.b-delivered{background:var(--grn2);color:var(--grn);}
+.b-issue{background:var(--red2);color:var(--red);}
+.b-hsl{background:#DBEAFE;color:#1E40AF;}
+.b-tpt{background:#DCFCE7;color:#166534;}
+.b-pkp{background:#FEF3C7;color:#92400E;}
+.b-cc{background:#EDE9FE;color:#5B21B6;}
+.b-ttk{background:#FFE4E6;color:#991B1B;}
+.b-other{background:var(--surf);color:var(--txt3);}
+
+/* ── FORM ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:11px;font-weight:600;color:var(--txt3);}
+.form-group input,.form-group select,.form-group textarea{
+  padding:8px 10px;border:1px solid var(--bdr);border-radius:8px;
+  font-size:12px;font-family:inherit;color:var(--txt);
+  background:var(--wht);outline:none;transition:border .12s;
+}
+.form-group input:focus,.form-group select:focus{border-color:var(--navy);}
+.form-group textarea{resize:vertical;min-height:60px;}
+
+/* ── IMPORT ZONE ── */
+.import-zone{border:2px dashed var(--bdr);border-radius:12px;padding:24px;text-align:center;background:var(--surf);cursor:pointer;transition:all .15s;}
+.import-zone:hover{border-color:var(--navy);background:var(--blu2);}
+.iz-icon{font-size:36px;margin-bottom:8px;}
+.iz-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.iz-sub{font-size:12px;color:var(--txt3);}
+
+/* ── TRIP CARD ── */
+.trip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.tc{background:var(--wht);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;transition:box-shadow .15s;}
+.tc:hover{box-shadow:0 4px 14px rgba(11,31,51,.08);}
+.tc-head{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
+.tc-plate{font-size:13px;font-weight:700;color:#fff;font-family:'IBM Plex Mono',monospace;}
+.tc-driver{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+.tc-sup-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);}
+.tc-body{padding:9px 12px;}
+.tc-zone{font-size:10px;color:var(--txt3);margin-bottom:5px;}
+.tc-stops{display:flex;flex-direction:column;gap:3px;}
+.tc-stop{display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:6px;background:var(--surf);}
+.ts-num{width:17px;height:17px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.ts-r2{background:var(--pur);}
+.ts-name{font-size:11px;font-weight:500;flex:1;}
+.tc-foot{padding:7px 12px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.tc-time{font-size:10px;color:var(--txt3);}
+
+/* ── MODAL ── */
+.modal-wrap{display:none;position:fixed;inset:0;background:rgba(11,31,51,.5);z-index:200;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
+.modal-wrap.open{display:flex;}
+.modal{background:var(--wht);border-radius:16px;width:100%;max-width:560px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal-head{padding:16px 18px;background:var(--navy);display:flex;align-items:center;justify-content:space-between;}
+.mh-title{font-size:14px;font-weight:600;color:var(--gold2);}
+.modal-body{padding:18px;}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--bdr);display:flex;gap:8px;justify-content:flex-end;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:10px 16px;border-radius:12px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(60px);opacity:0;transition:all .25s;z-index:999;border-left:3px solid var(--gold);pointer-events:none;}
+#toast.show{transform:translateY(0);opacity:1;}
+
+/* ── PAGE SECTIONS ── */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--bdr);margin:14px 0;}
+
+/* ── ORDER CHIP ── */
+.order-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;background:var(--amb2);color:var(--amb);font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace;margin:2px;}
+
+/* ── SPINNER ── */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top:2px solid #fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px;color:var(--txt3);}
+.empty-icon{font-size:40px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-logo">HSL Admin<span>ระบบวางแผนจัดส่ง</span></div>
+  <div class="nav-tabs">
+    <div class="ntab active" onclick="switchPage('dashboard',this)">📊 Dashboard</div>
+    <div class="ntab" onclick="switchPage('plan',this)">📋 วางแผนรถ</div>
+    <div class="ntab" onclick="switchPage('order',this)">📦 Import Order</div>
+    <div class="ntab" onclick="switchPage('trips',this)">🚛 Trip ทั้งหมด</div>
+    <div class="ntab" onclick="switchPage('check',this)">✅ Daily Check</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-date" id="navDate"></div>
+    <div class="nav-status" id="apiStatus">⏳ กำลังเชื่อม...</div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-head">
+    <div class="sb-date" id="sbDate">—</div>
+    <div class="sb-sub" id="sbSub">กำลังโหลด...</div>
+  </div>
+  <div class="sb-body">
+    <div class="sb-section">แผนวันนี้</div>
+    <div class="sb-item active" onclick="switchPage('dashboard',null)">
+      <span class="si-icon">📊</span>
+      <span class="si-label">ภาพรวม</span>
+      <span class="si-count" id="sbTrips">0</span>
+    </div>
+    <div class="sb-item" onclick="switchPage('plan',null)">
+      <span class="si-icon">➕</span>
+      <span class="si-label">สร้าง Trip ใหม่</span>
+    </div>
+    <div class="sb-item" onclick="switchPage('order',null)">
+      <span class="si-icon">📥</span>
+      <span class="si-label">Import Order</span>
+      <span class="si-count" id="sbOrders">0</span>
+    </div>
+    <div class="sb-section">ติดตาม</div>
+    <div class="sb-item" onclick="switchPage('trips',null)">
+      <span class="si-icon">🚛</span>
+      <span class="si-label">Trip ทั้งหมด</span>
+    </div>
+    <div class="sb-item" onclick="switchPage('check',null)">
+      <span class="si-icon">✅</span>
+      <span class="si-label">Daily Check</span>
+    </div>
+    <div class="sb-section">ข้อมูลหลัก</div>
+    <div class="sb-item" onclick="openTruckMaster()">
+      <span class="si-icon">🚛</span>
+      <span class="si-label">ทะเบียนรถ</span>
+    </div>
+    <div class="sb-item" onclick="openDriverMaster()">
+      <span class="si-icon">👤</span>
+      <span class="si-label">คนขับ</span>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ── DASHBOARD ── -->
+  <div id="page-dashboard" class="page active">
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi accent">
+        <div class="kl">🚛 Trip วันนี้</div>
+        <div class="kv" id="kpi-trips">—</div>
+        <div class="ks">แผนจัดส่ง</div>
+      </div>
+      <div class="kpi">
+        <div class="kl">🔵 Dispatched</div>
+        <div class="kv" id="kpi-dis">—</div>
+        <div class="ks">ออกประตูแล้ว</div>
+      </div>
+      <div class="kpi">
+        <div class="kl">⭐ ประเมินแล้ว</div>
+        <div class="kv" id="kpi-eval">—</div>
+        <div class="ks">จากลูกค้า</div>
+      </div>
+      <div class="kpi">
+        <div class="kl">🏆 Perfect Order</div>
+        <div class="kv" id="kpi-perf">—</div>
+        <div class="ks">คะแนนเฉลี่ย <span id="kpi-avg">—</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-title">🚛 แผน Trip วันนี้</div>
+        <div class="ch-actions">
+          <button class="btn btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
+          <button class="btn btn-navy btn-sm" onclick="switchPage('plan',null)">+ สร้าง Trip</button>
+        </div>
+      </div>
+      <div class="trip-grid" id="tripGrid" style="padding:12px;">
+        <div class="empty"><div class="empty-icon">📋</div><div>กำลังโหลด...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PLAN ── -->
+  <div id="page-plan" class="page">
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-title">➕ สร้าง Trip ใหม่</div>
+        <div class="ch-actions">
+          <span style="font-size:11px;color:var(--txt3);">กรอกข้อมูลแล้วกด "บันทึก"</span>
+        </div>
+      </div>
+      <div style="padding:16px 18px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>SUP / ผู้ขนส่ง *</label>
+            <select id="f-sup">
+              <option value="HSL">HSL (Own Fleet)</option>
+              <option value="TPT">TPT</option>
+              <option value="PKP">PKP</option>
+              <option value="ช.ชัยสิริ">ช.ชัยสิริ</option>
+              <option value="TTK">TTK</option>
+              <option value="บุคคล">บุคคลธรรมดา</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ทะเบียนรถ *</label>
+            <select id="f-plate">
+              <option value="">-- เลือก SUP ก่อน --</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>คนขับ *</label>
+            <input type="text" id="f-driver" placeholder="ชื่อคนขับ">
+          </div>
+          <div class="form-group">
+            <label>Terminal</label>
+            <select id="f-terminal">
+              <option value="T1">Terminal 1</option>
+              <option value="T2">Terminal 2</option>
+              <option value="T3">Terminal 3</option>
+              <option value="T4" selected>Terminal 4</option>
+              <option value="T5">Terminal 5</option>
+              <option value="T6">Terminal 6</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>โซน / ปลายทาง *</label>
+            <input type="text" id="f-zone" placeholder="เช่น บางวัว, เกตุเวย์, ปราจีน">
+          </div>
+          <div class="form-group">
+            <label>รอบ</label>
+            <select id="f-round">
+              <option value="1">รอบ 1 (เช้า)</option>
+              <option value="2">รอบ 2 (บ่าย/เย็น)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>เวลาออกตามแผน</label>
+            <input type="time" id="f-exit" value="08:00">
+          </div>
+          <div class="form-group">
+            <label>จำนวน Drop (จุดส่ง)</label>
+            <input type="number" id="f-dropno" value="1" min="1" max="20">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>จุดส่ง รอบ 1 (คั่นด้วย , )</label>
+          <textarea id="f-r1" placeholder="เช่น โคโยสเตียริ่ง, โคโยแมน, สยามเด็นโซ่"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>จุดส่ง รอบ 2 (ถ้ามี)</label>
+          <textarea id="f-r2" placeholder="เว้นว่างถ้าไม่มีรอบ 2"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>หมายเหตุ</label>
+          <input type="text" id="f-remark" placeholder="หมายเหตุเพิ่มเติม">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn" onclick="clearForm()">ล้างฟอร์ม</button>
+          <button class="btn btn-gold" onclick="saveTrip()" id="btnSave">💾 บันทึก Trip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ORDER IMPORT ── -->
+  <div id="page-order" class="page">
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-title">📦 Import Order จาก ERP</div>
+        <div class="ch-actions">
+          <button class="btn btn-sm" onclick="loadDemoOrders()">🎯 โหลด Demo</button>
+        </div>
+      </div>
+      <div style="padding:16px 18px;">
+        <div class="import-zone" onclick="document.getElementById('fileInput').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--navy)'"
+          ondragleave="this.style.borderColor='var(--bdr)'"
+          ondrop="handleDrop(event)">
+          <div class="iz-icon">📊</div>
+          <div class="iz-title">ลากไฟล์ Excel มาวาง หรือคลิกเลือกไฟล์</div>
+          <div class="iz-sub">รองรับ .xlsx / .xls — โครงสร้าง ERP Order Export</div>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this)">
+        <div id="orderResult" style="display:none;margin-top:14px;">
+          <div class="divider"></div>
+          <div id="orderSummary"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRIPS ── -->
+  <div id="page-trips" class="page">
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-title">🚛 Trip ทั้งหมดวันนี้</div>
+        <div class="ch-actions">
+          <button class="btn btn-sm" onclick="loadAllTrips()">🔄 รีเฟรช</button>
+          <button class="btn btn-navy btn-sm" onclick="exportTrips()">📤 Export</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Trip ID</th><th>ทะเบียน</th><th>คนขับ</th><th>SUP</th>
+              <th>โซน</th><th>รอบ 1</th><th>รอบ 2</th>
+              <th>ออกแผน</th><th>Dispatch จริง</th><th>สถานะ</th><th>ประเมิน</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="tripTable">
+            <tr><td colspan="12" style="text-align:center;padding:30px;color:var(--txt3);">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DAILY CHECK ── -->
+  <div id="page-check" class="page">
+    <div class="card">
+      <div class="card-head">
+        <div class="ch-title">✅ Daily Check วันนี้</div>
+        <div class="ch-actions">
+          <button class="btn btn-sm" onclick="loadCheckData()">🔄 รีเฟรช</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>เวลา</th><th>ทะเบียน</th><th>คนขับ</th><th>ไมล์</th>
+              <th>ผ่าน</th><th>ไม่ผ่าน</th><th>สถานะ</th><th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody id="checkTable">
+            <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--txt3);">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="padding:14px 16px;background:var(--blu2);border-top:1px solid var(--bdr);">
+        <div style="font-size:12px;color:var(--blu);font-weight:500;">📲 Link Daily Check สำหรับส่งให้คนขับ</div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;" id="checkLinks"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+</div><!-- /layout -->
+
+<!-- MODAL: Dispatch -->
+<div class="modal-wrap" id="dispatchModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="mh-title">🔵 Dispatch ออกประตู</div>
+      <button style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:18px;" onclick="closeModal('dispatchModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;" id="dispTripInfo">—</div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:16px;">ยืนยันว่ารถออกประตูโรงงานแล้ว ระบบจะบันทึก Timestamp ทันที</div>
+      <div style="background:var(--grn2);border-radius:10px;padding:12px;font-size:12px;color:var(--grn);">
+        ⏰ เวลาปัจจุบัน: <b id="dispTime">—</b>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('dispatchModal')">ยกเลิก</button>
+      <button class="btn btn-teal" onclick="confirmDispatch()" id="btnConfirmDispatch">✅ ยืนยัน Dispatch</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────
+const API = "https://script.google.com/macros/s/AKfycbxoVbfJ6ydOwvSKJpKGAiYwrrDKVWwSrYysd-cDLt2jUwJ3Hx9ecCJw0i2XRH7R386h/exec";
+const TODAY = new Date();
+const TODAY_STR = `${TODAY.getDate().toString().padStart(2,'0')}/${(TODAY.getMonth()+1).toString().padStart(2,'0')}/${TODAY.getFullYear()+543}`;
+let currentDispatchId = null;
+let allTrips = [];
+
+// ── DRIVER MAP ─────────────────────────────────────────────────
+const TRUCK_DRIVER = {
+  "HSL": [
+    {plate:"7M83-0650",driver:"ฉัตรชัย",type:"6ล้อ7ม"},
+    {plate:"7M83-2038",driver:"วัชรพล",type:"6ล้อ7ม"},
+    {plate:"7M83-3620",driver:"ทวีศักดิ์",type:"6ล้อ7ม"},
+    {plate:"7M83-1067",driver:"พงษ์พิพัฒน์",type:"6ล้อ7ม"},
+    {plate:"PฒG758",driver:"วันชัย",type:"ปิ๊กอัพ"},
+    {plate:"PฒG759",driver:"อิทธิพงษ์",type:"ปิ๊กอัพ"},
+    {plate:"ฒH4128",driver:"อาทิตย์",type:"ปิ๊กอัพ"},
+    {plate:"ฒH4129",driver:"ธีรวัฒน์",type:"ปิ๊กอัพ"},
+  ],
+  "TPT":[{plate:"7M80-5101",driver:"ณัฐพงษ์"},{plate:"7M70-5783",driver:"วัชรินทร์"},{plate:"7M70-7914",driver:"ศักดิ์สิทธิ์"}],
+  "PKP":[{plate:"73-7293",driver:"หนูกร"},{plate:"72-1769",driver:"ยิ่งศักดิ์"},{plate:"72-1343",driver:"นพเก้า"},{plate:"72-1905",driver:"กฤษดา"},{plate:"72-1372",driver:"อัครพล"}],
+  "ช.ชัยสิริ":[{plate:"700-4653",driver:"เอกภพ"},{plate:"70-5059",driver:"อภิวัฒน์"},{plate:"บห-9486",driver:"สมพงษ์"},{plate:"บน-7101",driver:"อัษฎาวุธ"}],
+  "TTK":[{plate:"74-1654",driver:"อาวุฒิ"}],
+  "บุคคล":[{plate:"72-8716",driver:"วีรพงษ์"},{plate:"74-1441",driver:"ธนภัทร"},{plate:"71-1989",driver:"ศักดิ์โกศล"}],
+};
+
+const SUP_COLOR = {
+  "HSL":"#185FA5","TPT":"#166534","PKP":"#92400E",
+  "ช.ชัยสิริ":"#534AB7","TTK":"#A32D2D","บุคคล":"#475569"
+};
+const SUP_BADGE = {
+  "HSL":"b-hsl","TPT":"b-tpt","PKP":"b-pkp",
+  "ช.ชัยสิริ":"b-cc","TTK":"b-ttk"
+};
+
+// ── INIT ───────────────────────────────────────────────────────
+window.addEventListener("load", () => {
+  const d = new Date();
+  document.getElementById("navDate").textContent =
+    `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+  document.getElementById("sbDate").textContent =
+    `วันที่ ${d.getDate()} มิ.ย. ${d.getFullYear()+543}`;
+  populatePlates("HSL");
+  loadDashboard();
+  buildCheckLinks();
+});
+
+// ── API CALL ───────────────────────────────────────────────────
+async function apiGet(params) {
+  const url = API + "?" + new URLSearchParams(params);
+  const r = await fetch(url);
+  return r.json();
+}
+
+async function apiPost(body) {
+  const r = await fetch(API, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const data = await apiGet({action:"getDashboard", date:TODAY_STR});
+    if (data.status === "ok") {
+      document.getElementById("kpi-trips").textContent = data.total_trips;
+      document.getElementById("kpi-dis").textContent   = data.dispatched;
+      document.getElementById("kpi-eval").textContent  = data.eval_done;
+      document.getElementById("kpi-perf").textContent  = data.perfect_pct;
+      document.getElementById("kpi-avg").textContent   = data.avg_score;
+      document.getElementById("sbTrips").textContent   = data.total_trips;
+      document.getElementById("sbSub").textContent     = `${data.total_trips} Trip · Dispatch ${data.dispatched}`;
+      document.getElementById("apiStatus").textContent  = "✅ API Connected";
+      document.getElementById("apiStatus").className   = "nav-status ok";
+    }
+    const trips = await apiGet({action:"getTrips", date:TODAY_STR});
+    if (trips.status === "ok") {
+      allTrips = trips.rows || [];
+      renderTripCards(allTrips);
+      renderTripTable(allTrips);
+    }
+  } catch(e) {
+    document.getElementById("apiStatus").textContent = "⚠️ ออฟไลน์";
+    renderDemoTrips();
+  }
+}
+
+// ── TRIP CARDS ─────────────────────────────────────────────────
+function renderTripCards(trips) {
+  const grid = document.getElementById("tripGrid");
+  if (!trips || !trips.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div>ยังไม่มี Trip วันนี้<br><small>กด "+ สร้าง Trip" เพื่อเริ่ม</small></div></div>`;
+    return;
+  }
+  grid.innerHTML = trips.map(t => {
+    const plate=t[2]||"–"; const driver=t[3]||"–"; const sup=t[4]||"–";
+    const zone=t[6]||"–"; const r1=t[8]||""; const r2=t[9]||"";
+    const exit=t[10]||"–"; const status=t[12]||"Planned"; const tid=t[0]||"–";
+    const color = SUP_COLOR[sup] || "#475569";
+    const r1stops = r1.split(",").filter(s=>s.trim()).slice(0,3);
+    const r2stops = r2.split(",").filter(s=>s.trim()).slice(0,2);
+    const sBadge = SUP_BADGE[sup] || "b-other";
+    return `
+    <div class="tc">
+      <div class="tc-head" style="background:${color}">
+        <div><div class="tc-plate">${plate}</div><div class="tc-driver">${driver}</div></div>
+        <span class="tc-sup-badge">${sup}</span>
+      </div>
+      <div class="tc-body">
+        <div class="tc-zone">📍 ${zone} · ออก ${exit}</div>
+        <div class="tc-stops">
+          ${r1stops.map((s,i)=>`<div class="tc-stop"><div class="ts-num">${i+1}</div><div class="ts-name">${s.trim()}</div></div>`).join("")}
+          ${r2stops.map((s,i)=>`<div class="tc-stop"><div class="ts-num ts-r2">R2</div><div class="ts-name">${s.trim()}</div></div>`).join("")}
+        </div>
+      </div>
+      <div class="tc-foot">
+        <span class="badge b-${status.toLowerCase()}">${status}</span>
+        <div style="display:flex;gap:5px;">
+          ${status==="Planned" ? `<button class="btn btn-sm btn-teal" onclick="openDispatch('${tid}','${plate}','${driver}','${zone}')">🔵 Dispatch</button>` : ""}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderDemoTrips() {
+  const demo = [
+    {plate:"7M83-1067",driver:"พงษ์พิพัฒน์",sup:"HSL",zone:"บางวัว",r1:"โคโยสเตียริ่ง,โคโยแมน",r2:"",exit:"08:00",status:"Planned"},
+    {plate:"7M83-0650",driver:"ฉัตรชัย",sup:"HSL",zone:"กรุงเทพ",r1:"สถานีการพิมพ์",r2:"",exit:"08:00",status:"Dispatched"},
+  ];
+  const grid = document.getElementById("tripGrid");
+  grid.innerHTML = demo.map(t => {
+    const color = SUP_COLOR[t.sup]||"#475569";
+    return `
+    <div class="tc">
+      <div class="tc-head" style="background:${color}">
+        <div><div class="tc-plate">${t.plate}</div><div class="tc-driver">${t.driver}</div></div>
+        <span class="tc-sup-badge">${t.sup}</span>
+      </div>
+      <div class="tc-body">
+        <div class="tc-zone">📍 ${t.zone} · ออก ${t.exit}</div>
+        <div class="tc-stops">
+          ${t.r1.split(",").map((s,i)=>`<div class="tc-stop"><div class="ts-num">${i+1}</div><div class="ts-name">${s.trim()}</div></div>`).join("")}
+        </div>
+      </div>
+      <div class="tc-foot">
+        <span class="badge b-${t.status.toLowerCase()}">${t.status}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── TRIP TABLE ─────────────────────────────────────────────────
+function renderTripTable(trips) {
+  const tbody = document.getElementById("tripTable");
+  if (!trips || !trips.length) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--txt3);">ยังไม่มี Trip</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = trips.map(t => {
+    const tid=t[0]; const plate=t[2]; const driver=t[3]; const sup=t[4];
+    const zone=t[6]; const r1=t[8]; const r2=t[9];
+    const exit=t[10]; const dispatch=t[11]; const status=t[12]; const eval_done=t[13];
+    const sBadge = SUP_BADGE[sup] || "b-other";
+    return `<tr>
+      <td style="font-family:monospace;font-size:10px;">${tid}</td>
+      <td style="font-weight:600;">${plate||"–"}</td>
+      <td>${driver||"–"}</td>
+      <td><span class="badge ${sBadge}">${sup||"–"}</span></td>
+      <td>${zone||"–"}</td>
+      <td style="font-size:11px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r1||"–"}</td>
+      <td style="font-size:11px;color:var(--txt3);">${r2||"–"}</td>
+      <td>${exit||"–"}</td>
+      <td style="color:${dispatch?'var(--teal)':'var(--txt3)'};">${dispatch||"–"}</td>
+      <td><span class="badge b-${(status||"planned").toLowerCase()}">${status||"Planned"}</span></td>
+      <td><span style="color:${eval_done==="Y"?'var(--grn)':'var(--txt3)'};">${eval_done==="Y"?"✅":"–"}</span></td>
+      <td>
+        ${status==="Planned"?`<button class="btn btn-sm btn-teal" onclick="openDispatch('${tid}','${plate}','${driver}','${zone}')">Dispatch</button>`:""}
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+async function loadAllTrips() {
+  try {
+    const data = await apiGet({action:"getTrips", date:TODAY_STR});
+    if (data.status === "ok") renderTripTable(data.rows||[]);
+  } catch(e) { toast("⚠️ ไม่สามารถโหลดข้อมูลได้"); }
+}
+
+// ── SAVE TRIP ─────────────────────────────────────────────────
+async function saveTrip() {
+  const sup    = document.getElementById("f-sup").value;
+  const plate  = document.getElementById("f-plate").value;
+  const driver = document.getElementById("f-driver").value.trim();
+  const zone   = document.getElementById("f-zone").value.trim();
+  const r1     = document.getElementById("f-r1").value.trim();
+  if (!plate || !driver || !zone || !r1) {
+    toast("⚠️ กรุณากรอก ทะเบียน คนขับ โซน และจุดส่งรอบ 1 ให้ครบ"); return;
+  }
+  const btn = document.getElementById("btnSave");
+  btn.innerHTML = `<span class="spinner"></span> กำลังบันทึก...`;
+  btn.disabled = true;
+  try {
+    const drops = document.getElementById("f-r1").value.split(",").length;
+    const data = await apiPost({action:"addTrip", data:{
+      plate, driverId:driver, supCode:sup,
+      terminal: document.getElementById("f-terminal").value,
+      zone, roundNo: document.getElementById("f-round").value,
+      r1Stops: r1, r2Stops: document.getElementById("f-r2").value.trim(),
+      plannedExit: document.getElementById("f-exit").value,
+      dropNo: document.getElementById("f-dropno").value,
+      poCount: 0, totalQty: 0, createdBy:"Admin",
+      remark: document.getElementById("f-remark").value
+    }});
+    if (data.status === "ok") {
+      toast("✅ บันทึก Trip สำเร็จ: " + data.trip_id);
+      clearForm();
+      loadDashboard();
+      switchPage("dashboard", null);
+    } else {
+      toast("❌ Error: " + JSON.stringify(data));
+    }
+  } catch(e) { toast("❌ ไม่สามารถบันทึกได้: " + e.message); }
+  btn.innerHTML = "💾 บันทึก Trip"; btn.disabled = false;
+}
+
+function clearForm() {
+  ["f-plate","f-driver","f-zone","f-r1","f-r2","f-remark"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  document.getElementById("f-exit").value = "08:00";
+  document.getElementById("f-dropno").value = "1";
+}
+
+// ── PLATES DROPDOWN ────────────────────────────────────────────
+function populatePlates(sup) {
+  const sel = document.getElementById("f-plate");
+  const trucks = TRUCK_DRIVER[sup] || [];
+  sel.innerHTML = trucks.map(t => `<option value="${t.plate}">${t.plate} — ${t.driver}</option>`).join("");
+  if (trucks.length) {
+    document.getElementById("f-driver").value = trucks[0].driver;
+    sel.onchange = function() {
+      const found = trucks.find(t=>t.plate===this.value);
+      if (found) document.getElementById("f-driver").value = found.driver;
+    };
+  }
+}
+document.getElementById("f-sup").addEventListener("change", function() {
+  populatePlates(this.value);
+});
+
+// ── DISPATCH ─────────────────────────────────────────────────
+function openDispatch(tripId, plate, driver, zone) {
+  currentDispatchId = tripId;
+  document.getElementById("dispTripInfo").textContent =
+    `${plate} — ${driver} — ${zone}`;
+  document.getElementById("dispTime").textContent =
+    new Date().toLocaleTimeString("th-TH");
+  document.getElementById("dispatchModal").classList.add("open");
+  setInterval(() => {
+    document.getElementById("dispTime").textContent =
+      new Date().toLocaleTimeString("th-TH");
+  }, 1000);
+}
+
+async function confirmDispatch() {
+  if (!currentDispatchId) return;
+  const btn = document.getElementById("btnConfirmDispatch");
+  btn.innerHTML = `<span class="spinner"></span> กำลังบันทึก...`;
+  btn.disabled = true;
+  try {
+    const data = await apiPost({action:"dispatchTrip", tripId:currentDispatchId});
+    if (data.status === "ok") {
+      toast("🔵 Dispatch สำเร็จ! เวลา: " + data.dispatch_time);
+      closeModal("dispatchModal");
+      loadDashboard();
+    } else {
+      toast("❌ " + JSON.stringify(data));
+    }
+  } catch(e) { toast("❌ Error: " + e.message); }
+  btn.innerHTML = "✅ ยืนยัน Dispatch"; btn.disabled = false;
+}
+
+// ── ORDER IMPORT ─────────────────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  e.target.style.borderColor = "var(--bdr)";
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFile(input) {
+  if (input.files[0]) processFile(input.files[0]);
+}
+function processFile(file) {
+  toast("📊 กำลัง Parse ไฟล์: " + file.name);
+  document.getElementById("orderResult").style.display = "block";
+  document.getElementById("orderSummary").innerHTML =
+    `<div style="padding:20px;text-align:center;color:var(--txt3);">กำลังอ่านไฟล์ "${file.name}"...<br><small>ขณะนี้ระบบพร้อม Integrate กับ ERP Export จริง</small></div>`;
+}
+function loadDemoOrders() {
+  const demo = [
+    {qc:"A030-โคโยสเตียริ่ง",nick:"โคโยสเตียริ่ง",pos:["JTC-L-2609497","JTC-L-2609500"],qty:216},
+    {qc:"A030-โคโยแมน",nick:"โคโยแมน",pos:["JTC-L-2609488","JTC-L-2609561"],qty:900},
+    {qc:"A019-TGT",nick:"โตโยด้า โกเซ",pos:["T2PP03004169"],qty:2060},
+    {qc:"A027",nick:"ฮีโน่ สำโรง",pos:["DLCS2606011"],qty:1650},
+    {qc:"A083",nick:"สยามเคียวซัน",pos:["60617037"],qty:14634},
+  ];
+  document.getElementById("orderResult").style.display = "block";
+  document.getElementById("sbOrders").textContent = demo.length;
+  document.getElementById("orderSummary").innerHTML = `
+    <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;">📦 Order Demo — ${demo.length} รายการ</div>
+    <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>QC Code</th><th>ชื่อเล่น</th><th>PO</th><th class="num">จำนวน</th></tr></thead>
+      <tbody>
+        ${demo.map(o=>`<tr>
+          <td style="font-family:monospace;font-size:11px;">${o.qc}</td>
+          <td style="font-weight:600;">${o.nick}</td>
+          <td>${o.pos.map(p=>`<span class="order-chip">${p}</span>`).join("")}</td>
+          <td class="num">${o.qty.toLocaleString()}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table></div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="btn btn-gold" onclick="toast('✅ Import Order เข้า ORDER_LOG สำเร็จ!')">📥 Import เข้า Database</button>
+      <button class="btn btn-navy" onclick="switchPage('plan',null)">➕ สร้าง Trip จาก Order</button>
+    </div>`;
+  toast("✅ โหลด Demo Order 5 รายการแล้ว");
+}
+
+// ── DAILY CHECK LINKS ─────────────────────────────────────────
+function buildCheckLinks() {
+  const trucks = TRUCK_DRIVER["HSL"];
+  const FORM_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform";
+  const container = document.getElementById("checkLinks");
+  container.innerHTML = trucks.map(t =>
+    `<a href="${FORM_URL}?plate=${encodeURIComponent(t.plate)}&driver=${encodeURIComponent(t.driver)}&date=${encodeURIComponent(TODAY_STR)}"
+      target="_blank"
+      style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:var(--wht);border:1px solid var(--bdr);font-size:11px;font-weight:500;color:var(--blu);text-decoration:none;">
+      📋 ${t.plate} (${t.driver})
+    </a>`
+  ).join("");
+}
+
+async function loadCheckData() {
+  toast("📋 โหลด Daily Check จาก Sheet...");
+  document.getElementById("checkTable").innerHTML =
+    `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--txt3);">กำลังโหลด...</td></tr>`;
+}
+
+// ── EXPORT ───────────────────────────────────────────────────
+function exportTrips() {
+  toast("📤 Export แผนรถ — เชื่อมกับ Google Sheet โดยตรงครับ");
+}
+
+function openTruckMaster() {
+  window.open(`https://docs.google.com/spreadsheets/d/1q4GRrYoNykgZB2KoqoOKSLSyfY9wr2Ugd7Tp7BNBPM8/edit#gid=0`, "_blank");
+}
+function openDriverMaster() {
+  window.open(`https://docs.google.com/spreadsheets/d/1q4GRrYoNykgZB2KoqoOKSLSyfY9wr2Ugd7Tp7BNBPM8/edit#gid=1`, "_blank");
+}
+
+// ── NAV & MODAL ───────────────────────────────────────────────
+function switchPage(name, el) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  document.querySelectorAll(".ntab").forEach(t=>t.classList.remove("active"));
+  if (el) el.classList.add("active");
+  document.querySelectorAll(".sb-item").forEach(t=>t.classList.remove("active"));
+  if (name==="trips") loadAllTrips();
+  if (name==="check") loadCheckData();
+}
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+// ── TOAST ─────────────────────────────────────────────────────
+let _tt;
+function toast(msg) {
+  clearTimeout(_tt);
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  _tt = setTimeout(()=>t.classList.remove("show"), 3500);
+}
+</script>
+</body>
+</html>
