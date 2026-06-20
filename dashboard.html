@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSL Logistics Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0B1F33;--navy2:#152C44;--gold:#C8962A;--gold2:#E8B84B;
+  --teal:#0F6E56;--teal2:#E1F5EE;--red:#A32D2D;--red2:#FCEBEB;
+  --amb:#854F0B;--amb2:#FAEEDA;--blu:#0C447C;--blu2:#E6F1FB;
+  --grn:#27500A;--grn2:#EAF3DE;--pur:#3C3489;--pur2:#EEEDFE;
+  --surf:#F0F2F5;--wht:#fff;--bdr:#E2E6EC;
+  --txt:#0B1525;--txt2:#3A4E63;--txt3:#6B7E92;
+}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--surf);color:var(--txt);min-height:100vh;}
+
+/* ── NAV ── */
+.nav{background:var(--navy);height:52px;display:flex;align-items:center;padding:0 20px;gap:14px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:14px;font-weight:700;color:var(--gold2);}
+.nav-logo span{display:block;font-size:10px;color:rgba(255,255,255,.35);font-weight:400;}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.nav-date{font-size:11px;color:rgba(255,255,255,.45);}
+.refresh-btn{padding:6px 14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.refresh-btn:hover{background:rgba(255,255,255,.15);}
+.api-dot{width:8px;height:8px;border-radius:50%;background:#aaa;}
+.api-dot.ok{background:#4CAF50;}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:var(--wht);border-bottom:1px solid var(--bdr);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.fb-label{font-size:11px;font-weight:600;color:var(--txt3);}
+.fb-select{padding:6px 10px;border:1px solid var(--bdr);border-radius:8px;font-size:12px;font-family:inherit;outline:none;color:var(--txt);}
+.fb-tab{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--bdr);background:var(--wht);color:var(--txt3);}
+.fb-tab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* ── MAIN ── */
+.main{padding:16px 20px;max-width:1400px;margin:0 auto;}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:var(--wht);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.k-gold::before{background:var(--gold);}
+.kpi.k-teal::before{background:var(--teal);}
+.kpi.k-blu::before{background:var(--blu);}
+.kpi.k-pur::before{background:var(--pur);}
+.kpi.k-amb::before{background:var(--amb);}
+.kpi-label{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.kpi-val{font-size:30px;font-weight:700;color:var(--navy);font-family:'IBM Plex Mono',monospace;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--txt3);margin-top:4px;}
+.kpi-trend{position:absolute;top:14px;right:14px;font-size:18px;}
+.kpi-bar{margin-top:8px;height:5px;border-radius:99px;background:var(--surf);overflow:hidden;}
+.kpi-bar-fill{height:100%;border-radius:99px;transition:width .6s;}
+
+/* ── GRID 2 COL ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+/* ── CARD ── */
+.card{background:var(--wht);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;}
+.card-head{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.ch-title{font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:7px;}
+.ch-sub{font-size:11px;color:var(--txt3);}
+.card-body{padding:16px;}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:220px;}
+.chart-wrap-sm{position:relative;height:160px;}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--surf);padding:8px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:left;border-bottom:2px solid var(--bdr);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em;}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bdr);}
+.tbl tr:hover td{background:#F8F9FB;}
+.tbl tr:last-child td{border-bottom:none;}
+.num{text-align:right;font-family:'IBM Plex Mono',monospace;}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;}
+.b-ok{background:var(--grn2);color:var(--grn);}
+.b-warn{background:var(--amb2);color:var(--amb);}
+.b-fail{background:var(--red2);color:var(--red);}
+.b-blu{background:var(--blu2);color:var(--blu);}
+
+/* ── DRIVER RANK ── */
+.rank-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);}
+.rank-item:last-child{border-bottom:none;}
+.rank-no{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-size:12px;font-weight:600;color:var(--txt);}
+.rank-plate{font-size:10px;color:var(--txt3);font-family:monospace;}
+.rank-score{font-size:16px;font-weight:700;font-family:monospace;}
+.rank-bar{height:5px;border-radius:99px;background:var(--surf);margin-top:4px;}
+.rank-bar-fill{height:100%;border-radius:99px;}
+
+/* ── ZONE MAP ── */
+.zone-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:12px;}
+.zone-item:last-child{border-bottom:none;}
+.zone-name{font-weight:500;}
+.zone-pills{display:flex;gap:6px;align-items:center;}
+
+/* ── UTIL VISUAL ── */
+.util-visual{display:flex;gap:8px;align-items:flex-end;height:100px;padding-bottom:4px;}
+.uv-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.uv-bar{width:100%;border-radius:6px 6px 0 0;transition:height .6s;}
+.uv-label{font-size:10px;color:var(--txt3);font-weight:600;}
+.uv-pct{font-size:11px;font-weight:700;font-family:monospace;}
+
+/* ── GMP SUMMARY ── */
+.gmp-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);}
+.gmp-row:last-child{border-bottom:none;}
+.gmp-icon{font-size:18px;width:26px;text-align:center;}
+.gmp-name{flex:1;font-size:12px;font-weight:500;}
+.gmp-pct-bar{width:80px;height:7px;border-radius:99px;background:var(--surf);}
+.gmp-pct-fill{height:100%;border-radius:99px;}
+
+/* ── LOADING ── */
+.loading{text-align:center;padding:30px;color:var(--txt3);}
+.spinner{width:24px;height:24px;border:3px solid var(--bdr);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bdr);}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-logo">HSL Logistics Dashboard<span>HSL Cartons Co., Ltd.</span></div>
+  <div class="nav-right">
+    <div class="nav-date" id="navDate">—</div>
+    <button class="refresh-btn" onclick="loadAll()">🔄 รีเฟรช</button>
+    <div class="api-dot" id="apiDot"></div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="fb-label">ช่วงเวลา:</span>
+  <select class="fb-select" id="filterPeriod" onchange="loadAll()">
+    <option value="today">วันนี้</option>
+    <option value="week">7 วันล่าสุด</option>
+    <option value="month" selected>เดือนนี้</option>
+    <option value="quarter">ไตรมาสนี้</option>
+  </select>
+  <span class="fb-label" style="margin-left:8px;">SUP:</span>
+  <select class="fb-select" id="filterSup" onchange="loadAll()">
+    <option value="all">ทั้งหมด</option>
+    <option value="HSL">HSL</option>
+    <option value="TPT">TPT</option>
+    <option value="PKP">PKP</option>
+  </select>
+  <span class="fb-label" style="margin-left:8px;">มุมมอง:</span>
+  <div style="display:flex;gap:4px;">
+    <div class="fb-tab on" onclick="setView('kpi',this)">📊 KPI</div>
+    <div class="fb-tab" onclick="setView('driver',this)">🚛 รายคนขับ</div>
+    <div class="fb-tab" onclick="setView('customer',this)">🏭 รายลูกค้า</div>
+    <div class="fb-tab" onclick="setView('trend',this)">📈 Trend</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ══ VIEW: KPI ══════════════════════════════════════════ -->
+  <div id="view-kpi">
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi k-gold">
+        <div class="kpi-label">🏆 Perfect Order %</div>
+        <div class="kpi-val" id="kpi-perfect">—</div>
+        <div class="kpi-sub" id="kpi-perfect-sub">กำลังโหลด...</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-perfect-bar" style="background:var(--gold);width:0%"></div></div>
+        <div class="kpi-trend" id="kpi-perfect-trend">—</div>
+      </div>
+      <div class="kpi k-teal">
+        <div class="kpi-label">⏰ On Time %</div>
+        <div class="kpi-val" id="kpi-ontime">—</div>
+        <div class="kpi-sub" id="kpi-ontime-sub">ส่งตรงเวลา</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-ontime-bar" style="background:var(--teal);width:0%"></div></div>
+      </div>
+      <div class="kpi k-blu">
+        <div class="kpi-label">📦 Case Fill %</div>
+        <div class="kpi-val" id="kpi-casefill">—</div>
+        <div class="kpi-sub" id="kpi-casefill-sub">สินค้าครบถ้วน</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-casefill-bar" style="background:var(--blu);width:0%"></div></div>
+      </div>
+      <div class="kpi k-pur">
+        <div class="kpi-label">🚛 Truck Fill Rate</div>
+        <div class="kpi-val" id="kpi-fillrate">—</div>
+        <div class="kpi-sub" id="kpi-fillrate-sub">เฉลี่ย % โหลดรถ</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-fillrate-bar" style="background:var(--pur);width:0%"></div></div>
+      </div>
+      <div class="kpi k-amb">
+        <div class="kpi-label">⏱️ Avg Service Time</div>
+        <div class="kpi-val" id="kpi-service">—</div>
+        <div class="kpi-sub" id="kpi-service-sub">นาที / จุด</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-service-bar" style="background:var(--amb);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Charts -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <div class="ch-title">📈 Perfect Order % รายวัน</div>
+          <div class="ch-sub">30 วันล่าสุด</div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap"><canvas id="chartPerfect"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="ch-title">🚛 Truck Fill Rate Distribution</div>
+          <div class="ch-sub">เที่ยวทั้งหมด</div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap"><canvas id="chartFill"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3 -->
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-head">
+          <div class="ch-title">😊 ความพึงพอใจ</div>
+          <div class="ch-sub" id="sat-total-sub">รวมทุกจุด</div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap-sm"><canvas id="chartSat"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="ch-title">⏱️ Service Time รายโซน</div>
+          <div class="ch-sub">นาทีเฉลี่ย</div>
+        </div>
+        <div class="card-body">
+          <div id="serviceTimeBody" class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="ch-title">🛡️ GMP/HACCP Pass Rate</div>
+          <div class="ch-sub">รายหมวด</div>
+        </div>
+        <div class="card-body" id="gmpBody">
+          <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 4: Recent trips + Daily Check -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <div class="ch-title">📋 Trip ล่าสุด</div>
+          <div class="ch-sub" id="trip-count-sub">—</div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <div class="tbl-wrap" style="overflow-x:auto;">
+            <table class="tbl">
+              <thead>
+                <tr><th>วันที่</th><th>ทะเบียน</th><th>ลูกค้า</th><th>IFOT%</th><th>พึงพอใจ</th><th>รอ(นาที)</th><th>Perfect</th></tr>
+              </thead>
+              <tbody id="tripTableBody"><tr><td colspan="7" class="loading"><div class="spinner" style="width:16px;height:16px;margin:6px auto;"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="ch-title">✅ Daily Check Compliance</div>
+          <div class="ch-sub" id="check-sub">กรอกครบ / ทั้งหมด</div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="tbl">
+            <thead><tr><th>ทะเบียน</th><th>คนขับ</th><th>กรอกครบ</th><th>สาย</th><th>สถานะ</th></tr></thead>
+            <tbody id="checkTableBody"><tr><td colspan="5" class="loading"><div class="spinner" style="width:16px;height:16px;margin:6px auto;"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VIEW: DRIVER ══════════════════════════════════════ -->
+  <div id="view-driver" style="display:none;">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="ch-title">🏆 Driver Ranking — Perfect Order %</div></div>
+        <div class="card-body" id="driverRank">
+          <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="ch-title">🚛 Truck Fill Rate รายคนขับ</div></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="chartDriverFill"></canvas></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="ch-title">📊 Service Time รายคนขับ (นาทีเฉลี่ย)</div></div>
+      <div class="card-body"><div class="chart-wrap"><canvas id="chartDriverService"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ══ VIEW: CUSTOMER ════════════════════════════════════ -->
+  <div id="view-customer" style="display:none;">
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head">
+        <div class="ch-title">🏭 รายงานลูกค้า — Perfect Order & Service Time</div>
+        <div class="ch-sub">เรียงตาม Perfect Order % ต่ำ → สูง (โฟกัสปัญหา)</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl">
+          <thead>
+            <tr><th>ลูกค้า</th><th>โซน</th><th>จำนวนครั้ง</th><th>On Time%</th><th>Case Fill%</th><th>เอกสาร%</th><th>พึงพอใจ</th><th>Perfect%</th><th>รอเฉลี่ย(นาที)</th><th>แนวโน้ม</th></tr>
+          </thead>
+          <tbody id="custTable"><tr><td colspan="10" class="loading"><div class="spinner" style="width:16px;height:16px;margin:6px auto;"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VIEW: TREND ══════════════════════════════════════ -->
+  <div id="view-trend" style="display:none;">
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-head"><div class="ch-title">📈 KPI Trend รายเดือน</div></div>
+      <div class="card-body"><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="ch-title">🚛 Truck Fill Rate Trend</div></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="chartFillTrend"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="ch-title">⏱️ Service Time Trend</div></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="chartServiceTrend"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxoVbfJ6ydOwvSKJpKGAiYwrrDKVWwSrYysd-cDLt2jUwJ3Hx9ecCJw0i2XRH7R386h/exec";
+const MONTHS = ["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+
+// Chart.js global defaults
+Chart.defaults.font.family = "'IBM Plex Sans Thai', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = "#6B7E92";
+Chart.defaults.plugins.legend.position = "bottom";
+Chart.defaults.plugins.legend.labels.boxWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 12;
+
+let charts = {};
+
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener("load", () => {
+  const d = new Date();
+  document.getElementById("navDate").textContent =
+    d.getDate()+" "+MONTHS[d.getMonth()+1]+" "+(d.getFullYear()+543)+" "+
+    d.getHours().toString().padStart(2,'0')+":"+d.getMinutes().toString().padStart(2,'0');
+  loadAll();
+});
+
+async function loadAll() {
+  const dot = document.getElementById("apiDot");
+  dot.style.background = "#FF9800";
+  try {
+    const data = await fetch(API+"?action=getDashboard&date="+getTodayStr()).then(r=>r.json());
+    dot.className = "api-dot ok";
+    updateKPI(data);
+  } catch(e) {
+    dot.style.background = "#F44336";
+  }
+  renderDemoData(); // Use demo data for charts
+}
+
+function getTodayStr() {
+  const d = new Date();
+  return d.getDate().toString().padStart(2,'0')+"/"+(d.getMonth()+1).toString().padStart(2,'0')+"/"+(d.getFullYear()+543);
+}
+
+function updateKPI(data) {
+  if (!data || data.status !== "ok") return;
+  setKPI("perfect", data.perfect_pct||"–", "จากทั้งหมด "+data.total_trips+" Trip", parseFloat(data.perfect_pct)||0);
+  setKPI("ontime",   "–", "ส่งตรงเวลา", 0);
+  setKPI("casefill", "–", "สินค้าครบถ้วน", 0);
+  setKPI("fillrate", "–", "เฉลี่ย % โหลด", 0);
+  setKPI("service",  data.avg_score||"–", "คะแนนเฉลี่ย", parseFloat(data.avg_score)||0);
+}
+
+function setKPI(id, val, sub, pct) {
+  const el = document.getElementById("kpi-"+id);
+  const subEl = document.getElementById("kpi-"+id+"-sub");
+  const bar = document.getElementById("kpi-"+id+"-bar");
+  if(el) el.textContent = val;
+  if(subEl && sub) subEl.textContent = sub;
+  if(bar) setTimeout(()=>bar.style.width=Math.min(100,pct)+"%",300);
+}
+
+// ── DEMO DATA for Charts ──────────────────────────────────────
+function renderDemoData() {
+  // Perfect Order trend
+  const days30 = Array.from({length:30},(_,i)=>{
+    const d=new Date(); d.setDate(d.getDate()-29+i);
+    return d.getDate()+"/"+(d.getMonth()+1);
+  });
+  const perfectTrend = days30.map(()=>Math.round(75+Math.random()*20));
+
+  // KPI values from demo
+  const avgPerfect = Math.round(perfectTrend.reduce((a,b)=>a+b)/perfectTrend.length);
+  setKPI("perfect", avgPerfect+"%", "จาก "+days30.length+" วัน", avgPerfect);
+  setKPI("ontime",  "89%", "ส่งตรงเวลา", 89);
+  setKPI("casefill","94%", "สินค้าครบถ้วน", 94);
+  setKPI("fillrate","62%", "เฉลี่ย % โหลด", 62);
+  setKPI("service", "28", "นาที / จุด", 56);
+
+  document.getElementById("kpi-perfect-trend").textContent = avgPerfect>=85?"📈":"📉";
+
+  buildChart("chartPerfect","line",days30,
+    [{label:"Perfect Order %",data:perfectTrend,borderColor:"#C8962A",backgroundColor:"rgba(200,150,42,.1)",tension:.3,fill:true,pointRadius:2}],
+    {y:{min:50,max:100,ticks:{callback:v=>v+"%"}}}
+  );
+
+  // Fill Rate Donut
+  buildChart("chartFill","doughnut",
+    ["25% (น้อย)","50% (ครึ่งคัน)","75% (เกือบเต็ม)","90%+ (เต็มคัน)"],
+    [{data:[8,22,35,35],backgroundColor:["#9E9E9E","#FF9800","#2196F3","#0F6E56"],borderWidth:2}],{}
+  );
+
+  // Satisfaction
+  buildChart("chartSat","bar",
+    ["😞 ต้องปรับ","😐 พอใช้","🙂 ดี","😊 ดีมาก","🤩 ดีเยี่ยม"],
+    [{label:"จำนวน",data:[2,8,25,45,20],backgroundColor:["#F44336","#FF9800","#2196F3","#4CAF50","#009688"],borderRadius:6}],
+    {x:{grid:{display:false}},y:{beginAtZero:true}}
+  );
+
+  // Service Time by Zone
+  document.getElementById("serviceTimeBody").innerHTML = [
+    ["อมตะบางปะกง","#0F6E56",32,45],["ปิ่นทอง","#2196F3",28,52],
+    ["เกตุเวย์","#C8962A",22,38],["บางวัว","#3C3489",35,48],
+    ["ปราจีน","#FF9800",55,62],["สมุทรปราการ","#9E9E9E",25,40],
+  ].map(([zone,col,avg,max])=>`
+    <div class="zone-item">
+      <div class="zone-name">📍 ${zone}</div>
+      <div style="flex:1;margin:0 12px;">
+        <div style="height:7px;border-radius:99px;background:var(--surf);overflow:hidden;">
+          <div style="height:100%;border-radius:99px;background:${col};width:${Math.round(avg/max*100)}%;"></div>
+        </div>
+      </div>
+      <div class="zone-pills">
+        <span style="font-family:monospace;font-size:12px;font-weight:600;">${avg} นาที</span>
+      </div>
+    </div>`).join("");
+
+  // GMP
+  document.getElementById("gmpBody").innerHTML = [
+    ["🪨","กายภาพ",98,"var(--grn)"],
+    ["🧪","เคมี",100,"var(--grn)"],
+    ["🦠","ชีวภาพ",97,"var(--grn)"],
+    ["🔒","Security",99,"var(--teal)"],
+    ["🧼","Personal Hygiene",95,"var(--amb)"],
+  ].map(([icon,name,pct,col])=>`
+    <div class="gmp-row">
+      <span class="gmp-icon">${icon}</span>
+      <span class="gmp-name">${name}</span>
+      <div class="gmp-pct-bar"><div class="gmp-pct-fill" style="background:${col};width:${pct}%;"></div></div>
+      <span style="font-size:12px;font-weight:700;color:${col};font-family:monospace;min-width:36px;text-align:right;">${pct}%</span>
+    </div>`).join("");
+
+  // Trip table
+  const trips = [
+    ["20/06","7M83-1067","โคโยสเตียริ่ง",95,5,12,"Y"],
+    ["20/06","7M83-1067","โคโยแมน",100,5,25,"Y"],
+    ["20/06","7M83-0650","สถานีการพิมพ์",67,4,35,"N"],
+    ["19/06","7M83-2038","ซูรูฮะ",100,5,18,"Y"],
+    ["19/06","7M83-3620","แอดวิคส เอเชีย",100,5,22,"Y"],
+  ];
+  document.getElementById("tripTableBody").innerHTML = trips.map(([date,plate,cust,ifot,sat,wait,perf])=>`
+    <tr>
+      <td>${date}</td>
+      <td style="font-family:monospace;font-size:11px;">${plate}</td>
+      <td style="font-weight:500;">${cust}</td>
+      <td class="num" style="color:${ifot>=90?'var(--grn)':ifot>=70?'var(--amb)':'var(--red)'};">${ifot}%</td>
+      <td class="num">${["","😞","😐","🙂","😊","🤩"][sat]}</td>
+      <td class="num">${wait} นาที</td>
+      <td><span class="badge ${perf==="Y"?"b-ok":"b-fail"}">${perf==="Y"?"✅ Yes":"❌ No"}</span></td>
+    </tr>`).join("");
+  document.getElementById("trip-count-sub").textContent = "5 รายการล่าสุด";
+
+  // Daily check table
+  const checks = [
+    ["7M83-0650","ฉัตรชัย","✅ ครบ","N","on"],
+    ["7M83-2038","วัชรพล","✅ ครบ","N","on"],
+    ["7M83-3620","ทวีศักดิ์","✅ ครบ","Y","warn"],
+    ["7M83-1067","พงษ์พิพัฒน์","✅ ครบ","N","on"],
+    ["PฒG758","วันชัย","⏳ รอ","–","warn"],
+    ["PฒG759","อิทธิพงษ์","✅ ครบ","N","on"],
+    ["ฒH4128","อาทิตย์","✅ ครบ","N","on"],
+    ["ฒH4129","ธีรวัฒน์","❌ ไม่กรอก","–","fail"],
+  ];
+  document.getElementById("checkTableBody").innerHTML = checks.map(([plate,drv,status,late,type])=>`
+    <tr>
+      <td style="font-family:monospace;font-size:11px;">${plate}</td>
+      <td style="font-weight:500;">${drv}</td>
+      <td>${status}</td>
+      <td style="text-align:center;">${late==="Y"?"⚠️ สาย":late==="N"?"✅":"–"}</td>
+      <td><span class="badge b-${type==="on"?"ok":type==="warn"?"warn":"fail"}">${type==="on"?"ปกติ":type==="warn"?"ตรวจสอบ":"แจ้งเตือน"}</span></td>
+    </tr>`).join("");
+  document.getElementById("check-sub").textContent = "6/8 กรอกครบ (75%)";
+
+  // DRIVER VIEW
+  const drivers = [
+    {name:"วัชรพล",plate:"7M83-2038",score:97,fill:75,service:20,color:"#C8962A"},
+    {name:"พงษ์พิพัฒน์",plate:"7M83-1067",score:94,fill:90,service:28,color:"#0F6E56"},
+    {name:"ทวีศักดิ์",plate:"7M83-3620",score:92,fill:65,service:32,color:"#2196F3"},
+    {name:"ฉัตรชัย",plate:"7M83-0650",score:88,fill:50,service:35,color:"#9C27B0"},
+    {name:"วันชัย",plate:"PฒG758",score:85,fill:75,service:22,color:"#FF5722"},
+    {name:"อิทธิพงษ์",plate:"PฒG759",score:82,fill:50,service:18,color:"#607D8B"},
+    {name:"อาทิตย์",plate:"ฒH4128",score:79,fill:90,service:55,color:"#795548"},
+    {name:"ธีรวัฒน์",plate:"ฒH4129",score:75,fill:25,service:42,color:"#9E9E9E"},
+  ];
+  document.getElementById("driverRank").innerHTML = drivers.map((d,i)=>`
+    <div class="rank-item">
+      <div class="rank-no" style="background:${i<3?"var(--gold)":"var(--surf)"};color:${i<3?"#fff":"var(--txt3)"}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${d.name}</div>
+        <div class="rank-plate">${d.plate}</div>
+        <div class="rank-bar"><div class="rank-bar-fill" style="background:${d.color};width:${d.score}%;"></div></div>
+      </div>
+      <div class="rank-score" style="color:${d.score>=90?"var(--grn)":d.score>=80?"var(--amb)":"var(--red)"};">${d.score}%</div>
+    </div>`).join("");
+
+  buildChart("chartDriverFill","bar",drivers.map(d=>d.name),
+    [{label:"Fill Rate %",data:drivers.map(d=>d.fill),backgroundColor:drivers.map(d=>d.color),borderRadius:6}],
+    {x:{grid:{display:false}},y:{min:0,max:100,ticks:{callback:v=>v+"%"}}}
+  );
+  buildChart("chartDriverService","bar",drivers.map(d=>d.name),
+    [{label:"Service Time (นาที)",data:drivers.map(d=>d.service),backgroundColor:drivers.map(d=>d.color),borderRadius:6}],
+    {x:{grid:{display:false}},y:{beginAtZero:true}}
+  );
+
+  // CUSTOMER VIEW
+  const custs = [
+    ["โคโยสเตียริ่ง","บางวัว",12,100,100,100,5,100,12,"📈"],
+    ["ซูรูฮะ","ลาดกระบัง",8,88,100,100,5,88,18,"📈"],
+    ["สถานีการพิมพ์","กรุงเทพ",6,67,100,67,4,44,35,"📉"],
+    ["แอดวิคส เอเชีย","ปิ่นทอง",10,100,100,100,5,100,22,"📈"],
+    ["โคจิมะ","กบินทร์",4,75,100,100,3,75,55,"📉"],
+    ["แปซิฟิค","เวลโกร์ว",7,100,100,100,5,100,25,"📈"],
+  ].sort((a,b)=>a[7]-b[7]);
+  document.getElementById("custTable").innerHTML = custs.map(([nick,zone,cnt,ot,cf,doc,sat,perf,wait,trend])=>`
+    <tr>
+      <td style="font-weight:600;">${nick}</td>
+      <td>${zone}</td>
+      <td class="num">${cnt}</td>
+      <td class="num" style="color:${ot>=90?"var(--grn)":ot>=70?"var(--amb)":"var(--red)"};">${ot}%</td>
+      <td class="num" style="color:${cf>=90?"var(--grn)":"var(--amb)"};">${cf}%</td>
+      <td class="num" style="color:${doc>=90?"var(--grn)":"var(--amb)"};">${doc}%</td>
+      <td class="num">${["","😞","😐","🙂","😊","🤩"][sat]}</td>
+      <td class="num"><b style="color:${perf>=90?"var(--grn)":perf>=70?"var(--amb)":"var(--red)"};">${perf}%</b></td>
+      <td class="num">${wait} นาที</td>
+      <td>${trend}</td>
+    </tr>`).join("");
+
+  // TREND VIEW
+  const months6 = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย."];
+  buildChart("chartTrend","line",months6,[
+    {label:"Perfect Order %",data:[78,81,79,85,88,92],borderColor:"#C8962A",tension:.3,borderWidth:2,pointRadius:4},
+    {label:"On Time %",data:[82,85,83,88,90,95],borderColor:"#0F6E56",tension:.3,borderWidth:2,pointRadius:4},
+    {label:"Case Fill %",data:[90,92,91,93,95,97],borderColor:"#0C447C",tension:.3,borderWidth:2,pointRadius:4},
+  ],{y:{min:60,max:100,ticks:{callback:v=>v+"%"}}});
+
+  buildChart("chartFillTrend","line",months6,
+    [{label:"Fill Rate % เฉลี่ย",data:[55,58,60,62,65,68],borderColor:"#3C3489",backgroundColor:"rgba(60,52,137,.1)",tension:.3,fill:true}],
+    {y:{min:0,max:100,ticks:{callback:v=>v+"%"}}}
+  );
+  buildChart("chartServiceTrend","line",months6,
+    [{label:"Service Time เฉลี่ย (นาที)",data:[35,33,32,30,29,28],borderColor:"#854F0B",backgroundColor:"rgba(133,79,11,.1)",tension:.3,fill:true}],
+    {y:{beginAtZero:false}}
+  );
+}
+
+// ── CHART BUILDER ─────────────────────────────────────────────
+function buildChart(id, type, labels, datasets, scaleOpts={}) {
+  if(charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type,
+    data:{labels,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:datasets.length>1}},
+      scales: type==="doughnut"||type==="pie"?{}:{
+        x:{grid:{color:"rgba(0,0,0,.04)"}, ...scaleOpts.x},
+        y:{grid:{color:"rgba(0,0,0,.04)"}, ...scaleOpts.y},
+      },
+      ...scaleOpts
+    }
+  });
+}
+
+// ── VIEW SWITCH ───────────────────────────────────────────────
+function setView(name, el) {
+  ["kpi","driver","customer","trend"].forEach(v=>{
+    document.getElementById("view-"+v).style.display = v===name?"block":"none";
+  });
+  document.querySelectorAll(".fb-tab").forEach(t=>t.classList.remove("on"));
+  el.classList.add("on");
+  // Re-render charts for new view
+  setTimeout(()=>Object.values(charts).forEach(c=>c.resize()),100);
+}
+</script>
+</body>
+</html>
