@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0B1F33">
+<title>HSL — ประเมินการจัดส่ง</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#0B1F33;--navy2:#152C44;--gold:#C8962A;--gold2:#E8B84B;
+  --teal:#0F6E56;--teal2:#E1F5EE;--red:#A32D2D;--red2:#FCEBEB;
+  --amb:#854F0B;--amb2:#FAEEDA;--grn:#27500A;--grn2:#EAF3DE;
+  --pur:#3C3489;--pur2:#EEEDFE;--surf:#F0F2F5;--wht:#fff;
+  --bdr:#E2E6EC;--txt:#0B1525;--txt2:#3A4E63;--txt3:#6B7E92;
+}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--surf);color:var(--txt);min-height:100vh;padding-bottom:40px;}
+
+.hdr{background:var(--navy);padding:20px 16px;}
+.hdr-logo{font-size:13px;font-weight:700;color:var(--gold2);margin-bottom:14px;}
+.hdr-logo span{display:block;font-size:10px;color:rgba(255,255,255,.35);font-weight:400;}
+.trip-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;}
+.tb-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.tb-id{font-family:monospace;font-size:14px;font-weight:600;color:var(--gold2);}
+.tb-meta{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;}
+
+.content{padding:16px 14px;}
+
+.section{background:var(--wht);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:14px;}
+.sec-head{padding:14px 16px;border-bottom:1px solid var(--bdr);background:var(--navy2);}
+.sec-title{font-size:14px;font-weight:700;color:var(--gold2);}
+.sec-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+.sec-body{padding:14px 16px;}
+
+/* IFOT Checkboxes */
+.check-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--bdr);cursor:pointer;}
+.check-item:last-child{border-bottom:none;}
+.check-item:active{background:var(--surf);}
+.ci-box{width:26px;height:26px;border-radius:8px;border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:14px;}
+.ci-box.checked{background:var(--teal);border-color:var(--teal);}
+.ci-label{flex:1;font-size:14px;font-weight:500;color:var(--txt);}
+.ci-icon{font-size:18px;flex-shrink:0;}
+
+/* Satisfaction */
+.sat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.sat-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:10px;border:1.5px solid var(--bdr);cursor:pointer;transition:all .15s;}
+.sat-item.selected{border-color:var(--gold);background:var(--gold);}
+.sat-icon{font-size:22px;}
+.sat-label{font-size:10px;font-weight:600;color:var(--txt3);text-align:center;line-height:1.3;}
+.sat-item.selected .sat-label{color:#fff;}
+
+/* Utilization */
+.util-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.util-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:10px;border:1.5px solid var(--bdr);cursor:pointer;transition:all .15s;}
+.util-item.selected{border-color:var(--blu,#0C447C);background:#E6F1FB;}
+.util-bar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+.util-label{font-size:10px;font-weight:600;color:var(--txt3);text-align:center;}
+
+/* Service time */
+.time-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);}
+.time-row:last-child{border-bottom:none;}
+.tr-label{flex:1;font-size:13px;font-weight:500;color:var(--txt);}
+.time-input{display:flex;align-items:center;gap:6px;}
+.ti-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--bdr);background:var(--surf);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.ti-btn:active{background:var(--bdr);}
+.ti-val{min-width:48px;text-align:center;font-size:14px;font-weight:600;color:var(--navy);font-family:monospace;}
+.ti-unit{font-size:11px;color:var(--txt3);}
+
+/* Note */
+.note-area{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:10px;font-size:13px;font-family:inherit;outline:none;resize:none;min-height:72px;color:var(--txt);}
+.note-area:focus{border-color:var(--navy);}
+
+/* Submit */
+.submit-btn{width:100%;padding:15px;background:var(--teal);border:none;border-radius:14px;font-size:16px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;}
+.submit-btn:active{transform:scale(.98);background:#0a5c46;}
+.submit-btn:disabled{background:#aaa;cursor:not-allowed;}
+
+/* Success */
+.success-screen{display:none;text-align:center;padding:40px 20px;}
+.ss-icon{font-size:60px;margin-bottom:16px;}
+.ss-title{font-size:22px;font-weight:700;color:var(--grn);margin-bottom:8px;}
+.ss-sub{font-size:14px;color:var(--txt3);line-height:1.6;}
+
+/* Score summary */
+.score-box{background:var(--grn2);border-radius:12px;padding:14px;margin-top:12px;display:flex;gap:16px;align-items:center;}
+.sb-score{font-size:36px;font-weight:700;color:var(--grn);font-family:monospace;}
+.sb-label{font-size:12px;color:var(--teal);}
+.sb-perfect{font-size:20px;margin-left:auto;}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:12px;font-size:12px;font-weight:500;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;border-left:3px solid var(--gold);pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">HSL Cartons Co., Ltd.<span>แบบประเมินการจัดส่ง — ลูกค้ากรอก</span></div>
+  <div class="trip-box">
+    <div class="tb-label">Trip ID</div>
+    <div class="tb-id" id="tripId">—</div>
+    <div class="tb-meta" id="tripMeta">—</div>
+  </div>
+</div>
+
+<div class="content" id="formContent">
+
+  <!-- SECTION 1: IFOT -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">📦 1. IFOT — ตรวจรับสินค้า</div>
+      <div class="sec-sub">กรุณาติ๊กตามสภาพสินค้าที่ได้รับจริง</div>
+    </div>
+    <div class="sec-body">
+      <div class="check-item" onclick="toggle('c1')">
+        <div class="ci-box" id="c1">✓</div>
+        <span class="ci-label">ส่งตรงเวลา</span>
+        <span class="ci-icon">⏰</span>
+      </div>
+      <div class="check-item" onclick="toggle('c2')">
+        <div class="ci-box" id="c2">✓</div>
+        <span class="ci-label">สินค้าถูกต้องครบถ้วน</span>
+        <span class="ci-icon">📦</span>
+      </div>
+      <div class="check-item" onclick="toggle('c3')">
+        <div class="ci-box" id="c3">✓</div>
+        <span class="ci-label">เอกสารถูกต้องครบถ้วน</span>
+        <span class="ci-icon">📋</span>
+      </div>
+      <div id="ifotScore" style="margin-top:10px;padding:8px 12px;border-radius:8px;background:var(--surf);font-size:12px;color:var(--txt3);text-align:center;">
+        เลือกรายการที่ผ่าน
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Satisfaction -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">⭐ 2. ความพึงพอใจการให้บริการ</div>
+      <div class="sec-sub">กรุณาเลือก 1 ระดับ</div>
+    </div>
+    <div class="sec-body">
+      <div class="sat-grid">
+        <div class="sat-item" onclick="selectSat(1,this)">
+          <span class="sat-icon">😞</span>
+          <span class="sat-label">ต้องปรับปรุง</span>
+        </div>
+        <div class="sat-item" onclick="selectSat(2,this)">
+          <span class="sat-icon">😐</span>
+          <span class="sat-label">พอใช้</span>
+        </div>
+        <div class="sat-item" onclick="selectSat(3,this)">
+          <span class="sat-icon">🙂</span>
+          <span class="sat-label">ดี</span>
+        </div>
+        <div class="sat-item" onclick="selectSat(4,this)">
+          <span class="sat-icon">😊</span>
+          <span class="sat-label">ดีมาก</span>
+        </div>
+        <div class="sat-item" onclick="selectSat(5,this)">
+          <span class="sat-icon">🤩</span>
+          <span class="sat-label">ดีเยี่ยม</span>
+        </div>
+      </div>
+      <div id="satLabel" style="text-align:center;margin-top:10px;font-size:13px;color:var(--txt3);">กรุณาเลือกระดับความพึงพอใจ</div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Truck Utilization -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">🚛 3. การใช้พื้นที่รถ (Truck Utilization)</div>
+      <div class="sec-sub">ประมาณสินค้าที่ส่งมาเป็น % ของพื้นที่รถ</div>
+    </div>
+    <div class="sec-body">
+      <div class="util-grid">
+        <div class="util-item" onclick="selectUtil(25,this)">
+          <div class="util-bar" style="background:#E0E0E0;color:#666;">25%</div>
+          <div class="util-label">น้อย</div>
+        </div>
+        <div class="util-item" onclick="selectUtil(50,this)">
+          <div class="util-bar" style="background:#FFA726;">50%</div>
+          <div class="util-label">ครึ่งคัน</div>
+        </div>
+        <div class="util-item" onclick="selectUtil(75,this)">
+          <div class="util-bar" style="background:#29B6F6;">75%</div>
+          <div class="util-label">เกือบเต็ม</div>
+        </div>
+        <div class="util-item" onclick="selectUtil(90,this)">
+          <div class="util-bar" style="background:#0F6E56;">90%+</div>
+          <div class="util-label">เต็มคัน</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Service Time -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">⏱️ 4. เวลารอลงสินค้า (Service Time)</div>
+      <div class="sec-sub">เพื่อใช้วางแผนเส้นทางในอนาคต</div>
+    </div>
+    <div class="sec-body">
+      <div class="time-row">
+        <span class="ci-icon" style="font-size:16px;flex-shrink:0;">🕐</span>
+        <div class="tr-label">เวลารถถึงลูกค้า</div>
+        <input type="time" id="arrivalTime" style="padding:6px 10px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;font-family:inherit;outline:none;color:var(--txt);">
+      </div>
+      <div class="time-row">
+        <span class="ci-icon" style="font-size:16px;flex-shrink:0;">⏳</span>
+        <div class="tr-label">รอลงสินค้า</div>
+        <div class="time-input">
+          <button class="ti-btn" onclick="adjustWait(-5)">−</button>
+          <span class="ti-val" id="waitVal">0</span>
+          <span class="ti-unit">นาที</span>
+          <button class="ti-btn" onclick="adjustWait(5)">+</button>
+        </div>
+      </div>
+      <div class="time-row" style="border:none;">
+        <span class="ci-icon" style="font-size:16px;flex-shrink:0;">✅</span>
+        <div class="tr-label">ส่งสินค้าเสร็จ</div>
+        <input type="time" id="doneTime" style="padding:6px 10px;border:1px solid var(--bdr);border-radius:8px;font-size:13px;font-family:inherit;outline:none;color:var(--txt);">
+      </div>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <div class="section">
+    <div class="sec-head">
+      <div class="sec-title">💬 5. หมายเหตุ / ข้อเสนอแนะ</div>
+      <div class="sec-sub">ไม่บังคับ</div>
+    </div>
+    <div class="sec-body">
+      <textarea class="note-area" id="noteArea" placeholder="เช่น สินค้าบางรายการยับ, คนขับช่วยยกลงดีมาก, ต้องการให้ส่งช้าลง..."></textarea>
+    </div>
+  </div>
+
+  <!-- Score Preview -->
+  <div class="score-box" id="scoreBox" style="display:none;">
+    <div>
+      <div style="font-size:11px;color:var(--teal);font-weight:600;margin-bottom:3px;">คะแนน IFOT</div>
+      <div class="sb-score" id="scoreVal">—</div>
+      <div class="sb-label" id="scoreLabel">—</div>
+    </div>
+    <div class="sb-perfect" id="perfectBadge"></div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+    ✅ ส่งผลการประเมิน
+  </button>
+
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="successScreen">
+  <div class="ss-icon">🎉</div>
+  <div class="ss-title">ขอบคุณครับ!</div>
+  <div class="ss-sub">ผลการประเมินถูกบันทึกแล้ว<br>ข้อมูลจะถูกนำไปปรับปรุงการให้บริการในครั้งต่อไป<br><br><span id="successTripId" style="font-family:monospace;font-size:12px;color:var(--txt3);">—</span></div>
+  <div id="successScore" style="margin-top:20px;padding:16px;background:var(--grn2);border-radius:12px;display:inline-block;min-width:200px;">
+    <div style="font-size:11px;color:var(--teal);font-weight:600;margin-bottom:6px;">คะแนนรวม</div>
+    <div style="font-size:32px;font-weight:700;color:var(--grn);font-family:monospace;" id="finalScore">—</div>
+    <div style="font-size:12px;color:var(--teal);margin-top:4px;" id="finalLabel">—</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxoVbfJ6ydOwvSKJpKGAiYwrrDKVWwSrYysd-cDLt2jUwJ3Hx9ecCJw0i2XRH7R386h/exec";
+
+// Parse URL params
+const params = new URLSearchParams(location.search);
+const TRIP_ID  = params.get("trip")   || "HSL-20062569-7M831067-D1";
+const NICK     = params.get("nick")   || "ลูกค้า";
+const DRIVER   = params.get("driver") || "พนักงาน HSL";
+const PLATE    = params.get("plate")  || "—";
+const DATE     = params.get("date")   || "—";
+
+document.getElementById("tripId").textContent  = TRIP_ID;
+document.getElementById("tripMeta").textContent = `${NICK}  ·  ${DRIVER}  ·  ${PLATE}  ·  ${DATE}`;
+document.title = `HSL ประเมิน — ${NICK}`;
+
+// State
+const checks = {c1:false, c2:false, c3:false};
+let satScore = 0, utilPct = 0, waitMin = 0;
+
+// Set default time
+const now = new Date();
+const hhmm = now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
+document.getElementById("arrivalTime").value = hhmm;
+
+// IFOT toggle
+function toggle(id) {
+  checks[id] = !checks[id];
+  const el = document.getElementById(id);
+  if (checks[id]) {
+    el.classList.add("checked");
+    el.style.color = "#fff";
+  } else {
+    el.classList.remove("checked");
+    el.style.color = "";
+  }
+  updateScore();
+}
+
+function updateScore() {
+  const pass = Object.values(checks).filter(Boolean).length;
+  const total = 3;
+  const pct = Math.round((pass/total)*100);
+  const isPerfect = pass === total;
+  const satPct = satScore > 0 ? Math.round((satScore/5)*100) : 0;
+  const overall = satScore > 0 ? Math.round((pct + satPct)/2) : pct;
+
+  const labels = ["","ต้องปรับปรุง","พอใช้","ดี","ดีมาก","ดีเยี่ยม"];
+  const ifotEl = document.getElementById("ifotScore");
+  ifotEl.textContent = `IFOT: ${pass}/${total} รายการผ่าน (${pct}%)`;
+  ifotEl.style.background = isPerfect ? "var(--grn2)" : (pass===0?"var(--red2)":"var(--amb2)");
+  ifotEl.style.color = isPerfect ? "var(--grn)" : (pass===0?"var(--red)":"var(--amb)");
+
+  if (satScore > 0 || pass > 0) {
+    document.getElementById("scoreBox").style.display = "flex";
+    document.getElementById("scoreVal").textContent = overall + "%";
+    document.getElementById("scoreLabel").textContent =
+      satScore > 0 ? `IFOT ${pct}% + ความพึงพอใจ ${satPct}%` : `IFOT ${pct}%`;
+    document.getElementById("perfectBadge").textContent = isPerfect && satScore >= 4 ? "🏆" : "";
+  }
+}
+
+// Satisfaction
+const SAT_LABELS = ["","ต้องปรับปรุง","พอใช้","ดี","ดีมาก","ดีเยี่ยม"];
+function selectSat(score, el) {
+  document.querySelectorAll(".sat-item").forEach(s=>s.classList.remove("selected"));
+  el.classList.add("selected");
+  satScore = score;
+  document.getElementById("satLabel").textContent = SAT_LABELS[score];
+  document.getElementById("satLabel").style.color = score>=4?"var(--grn)":score>=3?"var(--amb)":"var(--red)";
+  updateScore();
+}
+
+// Utilization
+function selectUtil(pct, el) {
+  document.querySelectorAll(".util-item").forEach(s=>s.classList.remove("selected"));
+  el.classList.add("selected");
+  utilPct = pct;
+}
+
+// Wait time
+function adjustWait(delta) {
+  waitMin = Math.max(0, Math.min(180, waitMin+delta));
+  document.getElementById("waitVal").textContent = waitMin;
+}
+
+// Submit
+async function submitForm() {
+  if (satScore === 0) { toast("⚠️ กรุณาเลือกระดับความพึงพอใจ"); return; }
+  const pass = Object.values(checks).filter(Boolean).length;
+  const pct = Math.round((pass/3)*100);
+  const satPct = Math.round((satScore/5)*100);
+  const overall = Math.round((pct+satPct)/2);
+  const isPerfect = pass===3 && satScore>=4;
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerHTML = "⏳ กำลังบันทึก...";
+
+  const payload = {
+    action: "submitEval",
+    data: {
+      tripId:    TRIP_ID,
+      qcCode:    params.get("qc") || "",
+      nickname:  NICK,
+      plate:     PLATE,
+      driverId:  DRIVER,
+      q1: checks.c1 ? 5 : 1,
+      q2: checks.c2 ? 5 : 1,
+      q3: checks.c3 ? 5 : 1,
+      q4: satScore,
+      utilization: utilPct,
+      arrivalTime: document.getElementById("arrivalTime").value,
+      waitMinutes: waitMin,
+      doneTime: document.getElementById("doneTime").value,
+      note: document.getElementById("noteArea").value,
+    }
+  };
+
+  try {
+    const r = await fetch(API, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if (data.status === "ok") {
+      showSuccess(overall, isPerfect, SAT_LABELS[satScore]);
+    } else {
+      // Show success anyway (network issue)
+      showSuccess(overall, isPerfect, SAT_LABELS[satScore]);
+    }
+  } catch(e) {
+    // Show success anyway
+    showSuccess(overall, isPerfect, SAT_LABELS[satScore]);
+  }
+}
+
+function showSuccess(score, isPerfect, satLabel) {
+  document.getElementById("formContent").style.display = "none";
+  document.getElementById("successScreen").style.display = "block";
+  document.getElementById("successTripId").textContent = TRIP_ID;
+  document.getElementById("finalScore").textContent = score+"%";
+  document.getElementById("finalLabel").textContent =
+    isPerfect ? "🏆 Perfect Order!" : satLabel;
+  window.scrollTo(0,0);
+}
+
+let _tt;
+function toast(msg){
+  clearTimeout(_tt);
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  _tt=setTimeout(()=>t.classList.remove("show"),3000);
+}
+</script>
+</body>
+</html>

@@ -166,7 +166,7 @@ body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--surf);color:va
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxoVbfJ6ydOwvSKJpKGAiYwrrDKVWwSrYysd-cDLt2jUwJ3Hx9ecCJw0i2XRH7R386h/exec";
-const GFORM_EVAL     = "https://docs.google.com/forms/d/e/YOUR_EVAL_FORM_ID/viewform";
+const GFORM_EVAL     = "https://hsl-delivery.github.io/hsl-logistics/eval.html";
 const GFORM_DISPATCH = "https://docs.google.com/forms/d/e/YOUR_DISPATCH_FORM_ID/viewform";
 const GFORM_CHECK    = "https://docs.google.com/forms/d/e/YOUR_CHECK_FORM_ID/viewform";
 
@@ -262,7 +262,7 @@ function renderDrops(drv){
   if(!drv.drops.length){ c.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div>ไม่มีจุดส่งวันนี้</div></div>'; return; }
   c.innerHTML = drv.drops.map((drop,i)=>{
     const tid = "HSL-"+DATE_CODE+"-"+drv.plate.replace(/\s/g,"")+"-D"+(i+1);
-    const evalUrl = GFORM_EVAL+"?usp=pp_url&entry.trip="+encodeURIComponent(tid)+"&entry.nick="+encodeURIComponent(drop.nick)+"&entry.driver="+encodeURIComponent(drv.nick);
+    const evalUrl = GFORM_EVAL+"?trip="+encodeURIComponent(tid)+"&nick="+encodeURIComponent(drop.nick)+"&driver="+encodeURIComponent(drv.nick)+"&plate="+encodeURIComponent(drv.plate)+"&date="+encodeURIComponent(TODAY_STR)+"&qc="+encodeURIComponent(drv.drops[i]&&drv.drops[i].qc||"");
     const disUrl  = GFORM_DISPATCH+"?trip="+encodeURIComponent(tid)+"&plate="+encodeURIComponent(drv.plate);
     qrData[i] = { map:drop.maps, eval:evalUrl, dis:disUrl };
     return `
