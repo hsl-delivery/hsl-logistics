@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B1F33">
+<title>HSL Guard — Scan เข้า/ออก</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#0B1F33;--navy2:#152C44;--gold:#C8962A;--gold2:#E8B84B;
+  --teal:#0F6E56;--teal2:#E1F5EE;--red:#A32D2D;--red2:#FCEBEB;
+  --amb:#854F0B;--amb2:#FAEEDA;--blu:#0C447C;--blu2:#E6F1FB;
+  --grn:#27500A;--grn2:#EAF3DE;--pur:#3C3489;--pur2:#EEEDFE;
+  --surf:#F0F2F5;--wht:#fff;--bdr:#E2E6EC;
+  --txt:#0B1525;--txt2:#3A4E63;--txt3:#6B7E92;
+}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--surf);color:var(--txt);min-height:100vh;padding-bottom:40px;}
+
+/* HEADER */
+.hdr{background:var(--navy);padding:14px 16px 12px;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.logo{font-size:14px;font-weight:700;color:var(--gold2);}
+.logo span{display:block;font-size:10px;color:rgba(255,255,255,.35);font-weight:400;margin-top:1px;}
+.time-badge{font-family:'IBM Plex Mono',monospace;font-size:12px;color:rgba(255,255,255,.6);background:rgba(255,255,255,.08);padding:4px 10px;border-radius:99px;}
+
+/* SUMMARY STRIP */
+.sum-strip{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.sum-strip::-webkit-scrollbar{display:none;}
+.sum-pill{display:flex;flex-direction:column;align-items:center;min-width:70px;padding:8px 10px;background:var(--wht);border-radius:12px;border:1px solid var(--bdr);}
+.sum-pill .sv{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1;}
+.sum-pill .sl{font-size:10px;color:var(--txt3);margin-top:3px;white-space:nowrap;}
+
+/* ACTION CARDS */
+.section{padding:0 16px 12px;}
+.sec-title{font-size:12px;font-weight:600;color:var(--txt3);letter-spacing:.04em;margin-bottom:8px;margin-top:14px;}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.action-card{border-radius:16px;padding:16px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;cursor:pointer;border:2px solid transparent;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.action-card:active{transform:scale(.97);}
+.ac-icon{font-size:26px;line-height:1;}
+.ac-title{font-size:15px;font-weight:700;line-height:1.2;}
+.ac-sub{font-size:11px;opacity:.75;margin-top:2px;}
+.ac-in{background:var(--grn2);border-color:var(--grn);}
+.ac-in .ac-title{color:var(--grn);}
+.ac-out{background:var(--amb2);border-color:var(--amb);}
+.ac-out .ac-title{color:var(--amb);}
+.ac-ret{background:var(--blu2);border-color:var(--blu);}
+.ac-ret .ac-title{color:var(--blu);}
+.ac-hsl{background:var(--pur2);border-color:var(--pur);}
+.ac-hsl .ac-title{color:var(--pur);}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(11,31,51,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.modal-bg.hidden{display:none;}
+.modal{background:var(--wht);border-radius:24px 24px 0 0;padding:20px 20px 36px;width:100%;max-width:500px;}
+.modal-title{font-size:16px;font-weight:700;color:var(--txt);margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--txt3);margin-bottom:16px;}
+.modal-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;margin-bottom:14px;}
+.mb-in{background:var(--grn2);color:var(--grn);}
+.mb-out{background:var(--amb2);color:var(--amb);}
+.mb-ret{background:var(--blu2);color:var(--blu);}
+.mb-hsl{background:var(--pur2);color:var(--pur);}
+
+.select-row{margin-bottom:12px;}
+.select-row label{font-size:12px;color:var(--txt3);display:block;margin-bottom:4px;}
+.sel{width:100%;background:var(--surf);border:1.5px solid var(--bdr);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--txt);outline:none;-webkit-appearance:none;}
+.sel:focus{border-color:var(--gold);}
+
+.time-row{display:flex;gap:8px;margin-bottom:14px;}
+.time-box{flex:1;background:var(--surf);border-radius:10px;padding:10px;text-align:center;}
+.time-box label{font-size:10px;color:var(--txt3);display:block;margin-bottom:3px;}
+.time-box .tval{font-size:18px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--navy);}
+
+.note-inp{width:100%;border:1.5px solid var(--bdr);border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;resize:none;color:var(--txt);background:var(--wht);margin-bottom:14px;}
+.note-inp:focus{outline:none;border-color:var(--gold);}
+
+.btn-row{display:flex;gap:8px;}
+.btn-cancel{flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--bdr);background:var(--surf);font-size:14px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:inherit;}
+.btn-confirm{flex:2;padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;}
+.btn-in{background:var(--grn);}
+.btn-out{background:var(--amb);}
+.btn-ret{background:var(--blu);}
+.btn-hsl{background:var(--pur);}
+
+/* LOG LIST */
+.log-list{padding:0 16px;}
+.log-card{background:var(--wht);border-radius:14px;border:1px solid var(--bdr);padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;}
+.log-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.log-body{flex:1;}
+.log-plate{font-size:14px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--txt);}
+.log-driver{font-size:12px;color:var(--txt3);margin-top:1px;}
+.log-time{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--txt2);margin-top:4px;}
+.log-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;margin-top:4px;}
+.lb-in{background:var(--grn2);color:var(--grn);}
+.lb-out{background:var(--amb2);color:var(--amb);}
+.lb-ret{background:var(--blu2);color:var(--blu);}
+.lb-hsl{background:var(--pur2);color:var(--pur);}
+
+.empty-log{text-align:center;padding:32px 20px;color:var(--txt3);font-size:13px;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:12px;font-size:12px;font-weight:500;z-index:999;opacity:0;transition:all .25s;border-left:3px solid var(--gold);white-space:nowrap;pointer-events:none;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">🔐 HSL Guard<span>ระบบ Scan เข้า-ออก รปภ.</span></div>
+    <div class="time-badge" id="liveClock">--:--</div>
+  </div>
+</div>
+
+<div class="sum-strip" id="sumStrip">
+  <div class="sum-pill"><span class="sv" id="sIn" style="color:#27500A">0</span><span class="sl">Scan เข้า</span></div>
+  <div class="sum-pill"><span class="sv" id="sOut" style="color:#854F0B">0</span><span class="sl">Scan ออก</span></div>
+  <div class="sum-pill"><span class="sv" id="sRet" style="color:#0C447C">0</span><span class="sl">กลับ HSL</span></div>
+  <div class="sum-pill"><span class="sv" id="sTotal">0</span><span class="sl">รวมวันนี้</span></div>
+</div>
+
+<div class="section">
+  <div class="sec-title">SCAN ACTION — แตะเพื่อบันทึก</div>
+  <div class="action-grid">
+    <div class="action-card ac-in" onclick="openModal('in')">
+      <div class="ac-icon">🟢</div>
+      <div class="ac-title">Scan เข้า HSL</div>
+      <div class="ac-sub">Step 1 · รถเข้าโรงงาน</div>
+    </div>
+    <div class="action-card ac-out" onclick="openModal('out')">
+      <div class="ac-icon">🟡</div>
+      <div class="ac-title">Scan ออก HSL</div>
+      <div class="ac-sub">Step 5 · รถออกส่ง</div>
+    </div>
+    <div class="action-card ac-ret" onclick="openModal('return')">
+      <div class="ac-icon">🔵</div>
+      <div class="ac-title">Scan กลับ HSL</div>
+      <div class="ac-sub">Step 8 · รถกลับจากส่ง</div>
+    </div>
+    <div class="action-card ac-hsl" onclick="openModal('hsl')">
+      <div class="ac-icon">🟣</div>
+      <div class="ac-title">รถ HSL ออก/กลับ</div>
+      <div class="ac-sub">รถ Own Fleet ไม่ต้อง Scan In</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">LOG วันนี้ — <span id="logDate"></span></div>
+  <div class="log-list" id="logList">
+    <div class="empty-log">ยังไม่มีการ Scan วันนี้</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg hidden" id="modalBg" onclick="closeModalBg(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-badge" id="modalBadge"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="select-row">
+      <label>ทะเบียนรถ / คนขับ</label>
+      <select class="sel" id="modalPlate">
+        <option value="">-- เลือกรถ --</option>
+      </select>
+    </div>
+    <div class="time-row">
+      <div class="time-box">
+        <label>เวลา (Auto)</label>
+        <div class="tval" id="modalTime">--:--</div>
+      </div>
+      <div class="time-box" style="flex:2;">
+        <label>แก้ไขเวลา (ถ้าจำเป็น)</label>
+        <input type="time" id="modalTimeOverride" style="width:100%;border:1.5px solid var(--bdr);border-radius:8px;padding:5px 8px;font-size:14px;text-align:center;font-family:'IBM Plex Mono',monospace;">
+      </div>
+    </div>
+    <textarea class="note-inp" id="modalNote" rows="2" placeholder="หมายเหตุ (ถ้ามี)..."></textarea>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-confirm" id="modalConfirmBtn" onclick="confirmScan()">✓ บันทึก Scan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxoVbfJ6ydOwvSKJpKGAiYwrrDKVWwSrYysd-cDLt2jUwJ3Hx9ecCJw0i2XRH7R386h/exec";
+const TODAY = new Date();
+const TODAY_STR = `${TODAY.getDate()} ${["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][TODAY.getMonth()]} ${TODAY.getFullYear()+543}`;
+
+const FLEET = [
+  {plate:"7M83-0650", driver:"ฉัตรชัย", type:"OWN"},
+  {plate:"7M83-2038", driver:"วัชรพล",  type:"OWN"},
+  {plate:"7M83-3620", driver:"ทวีศักดิ์", type:"OWN"},
+  {plate:"7M83-1067", driver:"พงษ์พิพัฒน์", type:"OWN"},
+  {plate:"พ ฒง-758",  driver:"วันชัย",  type:"OWN"},
+  {plate:"พ ฒง-759",  driver:"อิทธิพงษ์", type:"OWN"},
+  {plate:"ฒห-4128",   driver:"อาทิตย์", type:"OWN"},
+  {plate:"ฒห-4129",   driver:"ธีรวัฒน์", type:"OWN"},
+  {plate:"Sub/Vendor อื่น", driver:"— ระบุเอง —", type:"SUB"},
+];
+
+const MODAL_CFG = {
+  in:     {badge:"mb-in", label:"Scan เข้า HSL", sub:"Step 1 · บันทึกเวลารถเข้าโรงงาน", btn:"btn-in", dot:"#27500A", lbCls:"lb-in", lbTxt:"เข้า HSL"},
+  out:    {badge:"mb-out",label:"Scan ออก HSL",  sub:"Step 5 · รถออกส่งสินค้าแล้ว",       btn:"btn-out",dot:"#854F0B", lbCls:"lb-out",lbTxt:"ออก HSL"},
+  return: {badge:"mb-ret",label:"Scan กลับ HSL", sub:"Step 8 · รถกลับถึงโรงงาน",          btn:"btn-ret",dot:"#0C447C", lbCls:"lb-ret",lbTxt:"กลับ HSL"},
+  hsl:    {badge:"mb-hsl",label:"รถ HSL ออก/กลับ",sub:"รถ Own Fleet — ไม่ต้อง Scan In",   btn:"btn-hsl",dot:"#3C3489", lbCls:"lb-hsl",lbTxt:"HSL Fleet"},
+};
+
+let currentAction = null;
+let logs = [];
+let clockTimer = null;
+
+// ── CLOCK ──────────────────────────────────────────────────────────
+function startClock() {
+  function tick() {
+    const n = new Date();
+    const hh = n.getHours().toString().padStart(2,'0');
+    const mm = n.getMinutes().toString().padStart(2,'0');
+    const ss = n.getSeconds().toString().padStart(2,'0');
+    document.getElementById("liveClock").textContent = `${hh}:${mm}:${ss}`;
+    const mi = document.getElementById("modalTime");
+    if (mi) mi.textContent = `${hh}:${mm}`;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────
+function openModal(action) {
+  currentAction = action;
+  const cfg = MODAL_CFG[action];
+
+  // Populate badge
+  const badge = document.getElementById("modalBadge");
+  badge.className = "modal-badge " + cfg.badge;
+  badge.textContent = cfg.label;
+
+  document.getElementById("modalTitle").textContent = cfg.label;
+  document.getElementById("modalSub").textContent = cfg.sub;
+
+  // Confirm btn color
+  const btn = document.getElementById("modalConfirmBtn");
+  btn.className = "btn-confirm " + cfg.btn;
+
+  // Populate plate select
+  const sel = document.getElementById("modalPlate");
+  sel.innerHTML = '<option value="">-- เลือกรถ --</option>';
+  FLEET.forEach(f => {
+    // For HSL Fleet action, show only OWN; others show all
+    if (action === "hsl" && f.type !== "OWN" && f.plate !== "Sub/Vendor อื่น") return;
+    const opt = document.createElement("option");
+    opt.value = f.plate;
+    opt.textContent = f.plate + " · " + f.driver;
+    sel.appendChild(opt);
+  });
+  if (action !== "hsl") {
+    // Add sub/vendor option
+    const opt = document.createElement("option");
+    opt.value = "Sub/Vendor";
+    opt.textContent = "Sub/Vendor — ระบุใน Note";
+    sel.appendChild(opt);
+  }
+
+  // Reset fields
+  document.getElementById("modalNote").value = "";
+  document.getElementById("modalTimeOverride").value = "";
+
+  document.getElementById("modalBg").classList.remove("hidden");
+}
+
+function closeModal() {
+  document.getElementById("modalBg").classList.add("hidden");
+  currentAction = null;
+}
+
+function closeModalBg(e) {
+  if (e.target === document.getElementById("modalBg")) closeModal();
+}
+
+// ── CONFIRM SCAN ───────────────────────────────────────────────────
+async function confirmScan() {
+  const plate = document.getElementById("modalPlate").value;
+  if (!plate) { toast("⚠️ กรุณาเลือกทะเบียนรถก่อน"); return; }
+
+  const n = new Date();
+  const override = document.getElementById("modalTimeOverride").value;
+  const timeStr = override || n.getHours().toString().padStart(2,'0') + ":" + n.getMinutes().toString().padStart(2,'0');
+  const note = document.getElementById("modalNote").value.trim();
+  const cfg = MODAL_CFG[currentAction];
+  const fleet = FLEET.find(f => f.plate === plate) || {driver:"—"};
+
+  const entry = {
+    id: Date.now(),
+    action: currentAction,
+    plate,
+    driver: fleet.driver,
+    time: timeStr,
+    note,
+    cfg,
+  };
+
+  logs.unshift(entry);
+  updateSummary();
+  renderLogs();
+  closeModal();
+  toast("✅ " + cfg.lbTxt + " · " + plate + " · " + timeStr + " น.");
+
+  // Save to API
+  try {
+    await fetch(API, {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({action:"guardScan", data:{
+        timestamp: n.toISOString(), date: TODAY_STR,
+        scan_action: currentAction, plate, driver: fleet.driver,
+        scan_time: timeStr, note,
+      }})
+    });
+  } catch(e) {}
+}
+
+// ── SUMMARY ────────────────────────────────────────────────────────
+function updateSummary() {
+  document.getElementById("sIn").textContent    = logs.filter(l=>l.action==="in").length;
+  document.getElementById("sOut").textContent   = logs.filter(l=>l.action==="out").length;
+  document.getElementById("sRet").textContent   = logs.filter(l=>l.action==="return").length;
+  document.getElementById("sTotal").textContent = logs.length;
+}
+
+// ── RENDER LOGS ────────────────────────────────────────────────────
+function renderLogs() {
+  const el = document.getElementById("logList");
+  if (!logs.length) {
+    el.innerHTML = '<div class="empty-log">ยังไม่มีการ Scan วันนี้</div>';
+    return;
+  }
+  el.innerHTML = logs.map(l => `
+    <div class="log-card">
+      <div class="log-dot" style="background:${l.cfg.dot}"></div>
+      <div class="log-body">
+        <div class="log-plate">${l.plate}</div>
+        <div class="log-driver">${l.driver}${l.note ? " · " + l.note : ""}</div>
+        <div class="log-time">${l.time} น.</div>
+        <span class="log-badge ${l.cfg.lbCls}">${l.cfg.lbTxt}</span>
+      </div>
+    </div>`).join("");
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────
+let _tt;
+function toast(msg){clearTimeout(_tt);const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");_tt=setTimeout(()=>t.classList.remove("show"),3500);}
+
+// ── INIT ───────────────────────────────────────────────────────────
+document.getElementById("logDate").textContent = TODAY_STR;
+startClock();
+renderLogs();
+</script>
+</body>
+</html>
