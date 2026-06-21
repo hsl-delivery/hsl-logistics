@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B1F33">
+<title>HSL ใบงานจัดส่ง</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#0B1F33;--navy2:#152C44;--gold:#C8962A;--gold2:#E8B84B;
+  --teal:#0F6E56;--teal2:#E1F5EE;--red:#A32D2D;--red2:#FCEBEB;
+  --amb:#854F0B;--amb2:#FAEEDA;--blu:#0C447C;--blu2:#E6F1FB;
+  --grn:#27500A;--grn2:#EAF3DE;--pur:#3C3489;--pur2:#EEEDFE;
+  --surf:#F0F2F5;--wht:#fff;--bdr:#E2E6EC;
+  --txt:#0B1525;--txt2:#3A4E63;--txt3:#6B7E92;
+}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--surf);color:var(--txt);min-height:100vh;padding-bottom:40px;}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy);padding:14px 14px 0;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.logo{font-size:13px;font-weight:700;color:var(--gold2);}
+.logo span{display:block;font-size:10px;color:rgba(255,255,255,.35);font-weight:400;}
+.date-pill{font-size:11px;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);}
+.sel-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.sel-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.sel-row{display:flex;align-items:center;gap:8px;}
+.sel-row select{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 10px;font-size:13px;color:#fff;font-family:inherit;outline:none;}
+.sel-row select option{background:var(--navy2);}
+.sel-row button{padding:7px 14px;background:var(--gold);border:none;border-radius:8px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;}
+.drv-card{background:linear-gradient(135deg,var(--navy2),#1D3A5C);border:1px solid rgba(200,150,42,.25);border-radius:12px;padding:12px 14px;}
+.dc-plate{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#fff;}
+.dc-name{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px;}
+.dc-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.dc-stats{display:flex;gap:12px;align-items:center;}
+.dcs{text-align:center;}
+.dcs-n{font-size:18px;font-weight:700;color:#fff;font-family:'IBM Plex Mono',monospace;line-height:1;}
+.dcs-l{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;}
+.exit-box{background:var(--gold);border-radius:8px;padding:5px 11px;text-align:center;}
+.exit-t{font-size:16px;font-weight:700;color:#fff;font-family:'IBM Plex Mono',monospace;line-height:1;}
+.exit-l{font-size:9px;color:rgba(255,255,255,.75);margin-top:2px;}
+
+/* ── PROGRESS STEPPER ── */
+.stepper{background:var(--navy);padding:0 14px;display:flex;align-items:center;gap:0;overflow-x:auto;border-top:1px solid rgba(255,255,255,.06);}
+.stepper::-webkit-scrollbar{display:none;}
+.step{display:flex;align-items:center;gap:5px;flex-shrink:0;padding:9px 0;}
+.step-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.sd-done{background:var(--teal);color:#fff;}
+.sd-active{background:var(--gold);color:#fff;}
+.sd-todo{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);}
+.step-lbl{font-size:10px;font-weight:500;white-space:nowrap;}
+.sl-done{color:var(--teal2);}
+.sl-active{color:var(--gold2);}
+.sl-todo{color:rgba(255,255,255,.35);}
+.step-line{width:14px;height:1px;background:rgba(255,255,255,.15);flex-shrink:0;margin:0 2px;}
+
+/* ── CONTENT ── */
+.content{padding:12px 12px;}
+
+/* ── PHASE CARD ── */
+.phase-card{background:var(--wht);border-radius:14px;overflow:hidden;margin-bottom:10px;}
+.pc-head{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.pc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pc-title{font-size:13px;font-weight:700;flex:1;}
+.pc-sub{font-size:10px;margin-top:2px;}
+.pc-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;}
+.pb-pending{background:var(--surf);color:var(--txt3);border:1px solid var(--bdr);}
+.pb-done{background:var(--grn2);color:var(--grn);}
+.pb-active{background:var(--amb2);color:var(--amb);}
+.pc-body{padding:12px 14px;border-top:1px solid var(--bdr);}
+
+/* ── STEP INDICATOR ── */
+.step-indicator{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--surf);border-bottom:1px solid var(--bdr);}
+.si-num{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--navy);color:var(--gold2);}
+.si-text{font-size:11px;color:var(--txt2);}
+
+/* GMP */
+.gmp-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);}
+.gmp-item:last-child{border-bottom:none;}
+.gmp-label{flex:1;font-size:13px;font-weight:500;}
+.gmp-sublabel{font-size:10px;color:var(--txt3);margin-top:1px;}
+.gmp-toggle{display:flex;gap:5px;}
+.tog-ok{padding:6px 14px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--wht);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--txt3);transition:all .15s;}
+.tog-ok.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.tog-nok{padding:6px 10px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--wht);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--txt3);transition:all .15s;}
+.tog-nok.on{background:var(--red);border-color:var(--red);color:#fff;}
+
+/* Wait Bill */
+.wait-row{display:flex;align-items:center;gap:10px;padding:10px 0;}
+.wait-lbl{flex:1;font-size:13px;font-weight:500;}
+.wait-ctrl{display:flex;align-items:center;gap:8px;}
+.wc-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--bdr);background:var(--surf);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--txt);}
+.wc-btn:active{background:var(--bdr);}
+.wc-val{min-width:52px;text-align:center;font-size:18px;font-weight:700;font-family:monospace;color:var(--navy);}
+.wc-unit{font-size:12px;color:var(--txt3);}
+
+/* Drop card */
+.drop-header{padding:12px 14px;border-bottom:1px solid var(--bdr);}
+.drop-badges{display:flex;gap:6px;margin-bottom:4px;}
+.drop-num-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--navy);color:var(--gold2);}
+.round-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.rb-1{background:var(--grn2);color:var(--grn);}
+.rb-2{background:var(--pur2);color:var(--pur);}
+.drop-nick{font-size:20px;font-weight:700;color:var(--navy);margin-top:3px;}
+.drop-company{font-size:11px;color:var(--txt3);margin-top:1px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--bdr);}
+.ig-cell{padding:8px 14px;border-right:1px solid var(--bdr);}
+.ig-cell:nth-child(even){border-right:none;}
+.ig-l{font-size:10px;color:var(--txt3);}
+.ig-v{font-size:13px;font-weight:600;margin-top:2px;}
+.po-row{padding:8px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.po-chip{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;background:var(--amb2);color:var(--amb);}
+.cond-row{padding:8px 14px;border-bottom:1px solid var(--bdr);background:#FFFBF5;}
+.cond-l{font-size:10px;font-weight:600;color:var(--amb);margin-bottom:2px;}
+.cond-t{font-size:11px;color:var(--txt2);line-height:1.5;}
+
+/* Time tracking per drop */
+.time-track{padding:12px 14px;border-bottom:1px solid var(--bdr);}
+.tt-title{font-size:11px;font-weight:700;color:var(--navy);margin-bottom:10px;}
+.tt-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bdr);}
+.tt-row:last-child{border-bottom:none;}
+.tt-icon{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
+.tt-label{flex:1;font-size:12px;font-weight:500;}
+.tt-time-inp{padding:6px 10px;border:1px solid var(--bdr);border-radius:8px;font-size:12px;font-family:inherit;outline:none;color:var(--txt);}
+.tt-time-inp:focus{border-color:var(--navy);}
+.tt-wait-ctrl{display:flex;align-items:center;gap:6px;}
+.twc-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--bdr);background:var(--surf);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.twc-val{min-width:36px;text-align:center;font-size:13px;font-weight:600;font-family:monospace;}
+.twc-unit{font-size:10px;color:var(--txt3);}
+
+/* IFOT */
+.ifot-section{padding:12px 14px;border-bottom:1px solid var(--bdr);}
+.ifot-title{font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.chk-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);cursor:pointer;}
+.chk-item:last-child{border-bottom:none;}
+.chk-box{width:24px;height:24px;border-radius:7px;border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;flex-shrink:0;transition:all .15s;}
+.chk-box.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.chk-lbl{flex:1;font-size:13px;font-weight:500;}
+.sat-row{display:flex;gap:4px;margin-top:8px;}
+.sat-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 3px;border-radius:10px;border:1.5px solid var(--bdr);cursor:pointer;transition:all .15s;}
+.sat-btn.on{border-color:var(--gold);background:var(--gold);}
+.sat-btn.on .sat-lbl{color:#fff;}
+.sat-ico{font-size:18px;}
+.sat-lbl{font-size:9px;font-weight:600;color:var(--txt3);text-align:center;line-height:1.3;}
+.note-inp{width:100%;padding:8px 10px;border:1px solid var(--bdr);border-radius:8px;font-size:12px;font-family:inherit;outline:none;resize:none;min-height:52px;}
+
+/* Action buttons */
+.act-section{padding:10px 14px;display:flex;flex-direction:column;gap:7px;}
+.act-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:11px;border:1px solid var(--bdr);background:var(--wht);text-decoration:none;cursor:pointer;transition:all .12s;color:inherit;width:100%;text-align:left;}
+.act-btn:active{transform:scale(.98);background:var(--surf);}
+.ab-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.ai-green{background:var(--teal2);}
+.ai-blue{background:var(--blu2);}
+.ab-body{flex:1;min-width:0;}
+.ab-title{font-size:13px;font-weight:600;color:var(--navy);}
+.ab-sub{font-size:10px;color:var(--txt3);margin-top:1px;}
+.ab-qr{flex-shrink:0;width:40px;height:40px;border-radius:6px;overflow:hidden;border:1px solid var(--bdr);}
+.ab-qr canvas,.ab-qr img{width:40px!important;height:40px!important;}
+.ab-arr{font-size:15px;color:var(--txt3);}
+
+/* Confirm button */
+.confirm-btn{width:100%;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;margin-top:4px;}
+.confirm-btn:active{transform:scale(.98);}
+.confirm-btn:disabled{background:#aaa!important;cursor:not-allowed;}
+.btn-teal{background:var(--teal);}
+.btn-navy{background:var(--navy);}
+.btn-gold{background:var(--gold);}
+.btn-red{background:var(--red);}
+.btn-pur{background:var(--pur);}
+
+/* Summary card */
+.summary-card{background:var(--navy);border-radius:14px;padding:16px;margin-bottom:10px;}
+.sc-title{font-size:12px;font-weight:600;color:var(--gold2);margin-bottom:12px;}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.sc-item{text-align:center;}
+.sc-val{font-size:20px;font-weight:700;color:#fff;font-family:'IBM Plex Mono',monospace;line-height:1;}
+.sc-lbl{font-size:9px;color:rgba(255,255,255,.45);margin-top:3px;}
+.sc-row{display:flex;flex-direction:column;gap:5px;margin-top:12px;}
+.sc-r-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;}
+.sc-r-key{color:rgba(255,255,255,.5);}
+.sc-r-val{color:#fff;font-family:monospace;font-weight:600;}
+
+/* Fill Rate (ท้ายสุด) */
+.fill-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.fill-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 5px;border-radius:11px;border:1.5px solid var(--bdr);cursor:pointer;transition:all .15s;background:var(--wht);}
+.fill-btn.on{border-color:var(--teal);background:var(--teal2);}
+.fill-btn.on .fill-lbl{color:var(--teal);}
+.fill-circle{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.fill-lbl{font-size:11px;font-weight:600;color:var(--txt3);text-align:center;}
+.fill-sublbl{font-size:9px;color:var(--txt3);}
+
+/* Truck tab */
+.tabs{background:var(--navy);display:flex;padding:0 14px;border-top:1px solid rgba(255,255,255,.06);}
+.tab{flex:1;padding:9px 0;font-size:11px;font-weight:500;color:rgba(255,255,255,.4);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tab.active{color:var(--gold2);border-bottom-color:var(--gold);}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:12px;font-size:12px;font-weight:500;opacity:0;transition:all .25s;z-index:999;white-space:nowrap;border-left:3px solid var(--gold);pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.copy-btn{background:none;border:none;cursor:pointer;font-size:11px;color:var(--txt3);padding:2px 4px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">HSL Cartons<span>ใบงานจัดส่ง + Time Tracking</span></div>
+    <div class="date-pill" id="dateLabel">—</div>
+  </div>
+  <div class="sel-box">
+    <div class="sel-label">เลือกคนขับ / ทะเบียนรถ</div>
+    <div class="sel-row">
+      <select id="driverSel"><option value="">-- เลือกคนขับ --</option></select>
+      <button onclick="loadDriver()">โหลด ▶</button>
+    </div>
+  </div>
+  <div id="driverCard" style="display:none;">
+    <div class="drv-card">
+      <div class="dc-row">
+        <div>
+          <div class="dc-plate" id="dcPlate">—</div>
+          <div class="dc-name" id="dcName">—</div>
+        </div>
+        <div class="dc-stats">
+          <div class="dcs"><div class="dcs-n" id="dcDrops">0</div><div class="dcs-l">จุด</div></div>
+          <div class="dcs"><div class="dcs-n" id="dcQty">0</div><div class="dcs-l">ชิ้น</div></div>
+          <div class="exit-box"><div class="exit-t">08:00</div><div class="exit-l">ออก</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- Stepper -->
+    <div class="stepper" id="stepper"></div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('trip',this)">🚛 Trip Flow</div>
+      <div class="tab" onclick="switchTab('truck',this)">📋 ข้อมูลรถ</div>
+      <div class="tab" onclick="switchTab('check',this)">✅ Daily Check</div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <!-- TAB: TRIP FLOW -->
+  <div id="tab-trip">
+    <div id="tripFlow"></div>
+  </div>
+  <div id="tab-truck" style="display:none;">
+    <div style="background:var(--wht);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;">
+      <div style="padding:11px 14px;background:var(--navy2);"><div style="font-size:12px;font-weight:600;color:var(--gold2);">🚛 ข้อมูลรถและเอกสาร</div></div>
+      <div style="padding:14px;" id="truckInfoBody"></div>
+    </div>
+  </div>
+  <div id="tab-check" style="display:none;">
+    <div style="background:var(--wht);border:1px solid var(--bdr);border-radius:14px;padding:14px;" id="checkLinkArea"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxoVbfJ6ydOwvSKJpKGAiYwrrDKVWwSrYysd-cDLt2jUwJ3Hx9ecCJw0i2XRH7R386h/exec";
+const GFORM_DISPATCH = "https://docs.google.com/forms/d/e/YOUR_DISPATCH_ID/viewform";
+const GFORM_CHECK    = "https://docs.google.com/forms/d/e/YOUR_CHECK_ID/viewform";
+const SAT_LABELS     = ["","ต้องปรับปรุง","พอใช้","ดี","ดีมาก","ดีเยี่ยม"];
+const STRIPES        = ["linear-gradient(90deg,#0F6E56,#C8962A)","linear-gradient(90deg,#534AB7,#0F6E56)","linear-gradient(90deg,#C8962A,#0C447C)","linear-gradient(90deg,#0C447C,#0F6E56)"];
+
+const NOW = new Date();
+const TODAY_STR = NOW.getDate().toString().padStart(2,'0')+"/"+(NOW.getMonth()+1).toString().padStart(2,'0')+"/"+(NOW.getFullYear()+543);
+const DATE_CODE = (NOW.getFullYear()-2500).toString()+(NOW.getMonth()+1).toString().padStart(2,'0')+NOW.getDate().toString().padStart(2,'0');
+
+const DRIVERS = [
+  {id:"DRV001",plate:"7M83-0650",nick:"ฉัตรชัย",name:"ฉัตรชัย ส่งสุทธิ",type:"6ล้อ 7ม.",term:"T4",phone:"095-791-6205",km:"641,520",sup:"HSL",
+   drops:[{nick:"สถานีการพิมพ์",company:"บริษัท สถานีการพิมพ์ จำกัด",zone:"กรุงเทพฯ",pos:["A753-20-06-69"],qty:300,round:1,cond:"ตรวจสอบจำนวนกับเอกสารก่อนส่ง · เก็บใบเซ็นรับคืน",maps:"https://maps.google.com/?q=สถานีการพิมพ์+กรุงเทพ"}]},
+  {id:"DRV002",plate:"7M83-2038",nick:"วัชรพล",name:"วัชรพล หะรังษี",type:"6ล้อ 7ม.",term:"T4",phone:"063-606-5275",km:"499,114",sup:"HSL",
+   drops:[
+     {nick:"ซูรูฮะ",company:"บริษัท ซูรูฮะ (ประเทศไทย) จำกัด",zone:"ลาดกระบัง กรุงเทพฯ",pos:["A256-20-06-69"],qty:7000,round:1,cond:"สินค้าหนัก ระวังการจัดเรียง · ต้องมีผู้ช่วยยกลง",maps:"https://maps.google.com/?q=Zuruha+Thailand+Lat+Krabang"},
+     {nick:"เพอร์แพ็ค",company:"บริษัท เพอร์แพ็ค โพรเคียวเมนต์ จำกัด",zone:"ปทุมธานี",pos:["M690220"],qty:100,round:2,cond:"โทรแจ้งก่อนถึง 30 นาที",maps:"https://maps.google.com/?q=Perpac+Pathumthani"}]},
+  {id:"DRV003",plate:"7M83-3620",nick:"ทวีศักดิ์",name:"ทวีศักดิ์ มณีชล",type:"6ล้อ 7ม.",term:"T4",phone:"091-059-4842",km:"382,491",sup:"HSL",
+   drops:[
+     {nick:"ปิ่นทอง 3",company:"บริษัท อิชิมิซุ อินดัสทรี (ไทยแลนด์) จำกัด",zone:"ปิ่นทอง สระบุรี",pos:["PO-2606113"],qty:20,round:1,cond:"ส่งประตูโรงงาน โซน 3",maps:"https://maps.google.com/?q=Pinthong+Industrial+Saraburi"},
+     {nick:"แอดวิคส เอเชีย",company:"บริษัท แอดวิคส เอเชีย แปซิฟิค จำกัด",zone:"ปิ่นทอง สระบุรี",pos:["A399-มิย-26"],qty:6136,round:1,cond:"ส่งก่อน 12.00 น.",maps:"https://maps.google.com/?q=Advics+Asia+Pacific+Pinthong"}]},
+  {id:"DRV004",plate:"7M83-1067",nick:"พงษ์พิพัฒน์",name:"พงษ์พิพัฒน์ พราหมณ์สุวรรณ์",type:"6ล้อ 7ม.",term:"T5",phone:"064-246-2541",km:"635,724",sup:"HSL",
+   drops:[
+     {nick:"โคโยสเตียริ่ง",company:"บริษัท เจเทคโตะ (ไทยแลนด์) จำกัด",zone:"บางวัว ฉะเชิงเทรา",pos:["JTC-L-2609497","JTC-L-2609500"],qty:216,round:1,cond:"ส่งที่โกดังหลังโรงงาน ประตู B · รับเอกสารก่อนลงสินค้า",maps:"https://maps.google.com/?q=JTEKT+Thailand+Bangwua"},
+     {nick:"โคโยแมน",company:"บริษัท เจเทคโตะ (ไทยแลนด์) จำกัด",zone:"บางวัว ฉะเชิงเทรา",pos:["JTC-L-2609488","JTC-L-2609561"],qty:900,round:1,cond:"ส่งโกดัง แมน · แจ้ง รปภ. ก่อนเข้า",maps:"https://maps.google.com/?q=JTEKT+Man+Bangwua"}]},
+  {id:"DRV005",plate:"PฒG758",nick:"วันชัย",name:"วันชัย โพธิ์ศรี",type:"ปิ๊กอัพ",term:"T2",phone:"065-610-6991",km:"613,345",sup:"HSL",
+   drops:[{nick:"โตโยต้าสำโรง",company:"บริษัท โตโยต้า ไดฮัทสุ เอ็นจิเนียริ่ง จำกัด",zone:"สำโรง สมุทรปราการ",pos:["1S-HSL1ASQA5155"],qty:332,round:1,cond:"ส่งประตูหลัก · แจ้ง Security ชื่อ HSL",maps:"https://maps.google.com/?q=Toyota+Daihatsu+Samrong"}]},
+  {id:"DRV006",plate:"PฒG759",nick:"อิทธิพงษ์",name:"อิทธิพงษ์ อ่อนดี",type:"ปิ๊กอัพ",term:"T4",phone:"091-763-6424",km:"644,979",sup:"HSL",
+   drops:[{nick:"425ดีกรี",company:"บริษัท 425ดีกรี จำกัด",zone:"กรุงเทพฯ",pos:["200626"],qty:4560,round:1,cond:"โทรแจ้งล่วงหน้าก่อนถึง",maps:"https://maps.google.com/?q=425+Degree+Bangkok"}]},
+  {id:"DRV007",plate:"ฒH4128",nick:"อาทิตย์",name:"อาทิตย์ คำภิน",type:"ปิ๊กอัพ",term:"T1",phone:"085-737-2505",km:"522,958",sup:"HSL",
+   drops:[{nick:"โคจิมะ",company:"บริษัท โคจิมะ ออโต้ เทคโนโลยี (ไทยแลนด์) จำกัด",zone:"กบินทร์บุรี ปราจีนบุรี",pos:["PO0029878"],qty:1480,round:1,cond:"ระยะไกล — ออกตรงเวลา",maps:"https://maps.google.com/?q=Kojima+Auto+Kabinburi"}]},
+  {id:"DRV008",plate:"ฒH4129",nick:"ธีรวัฒน์",name:"ธีรวัฒน์ สายเครือมอย",type:"ปิ๊กอัพ",term:"T3",phone:"067-978-0512",km:"225,014",sup:"HSL",
+   drops:[{nick:"แปซิฟิค",company:"บริษัท แปซิฟิค อินดัสตรีย์ส (ไทยแลนด์) จำกัด",zone:"เวลโกร์ว สมุทรปราการ",pos:["C260600143"],qty:600,round:1,cond:"ส่งสินค้าที่คลังสินค้า โซน A",maps:"https://maps.google.com/?q=Pacific+Industries+Wellgrow"}]},
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+let curDrv=null;
+let tripState={
+  phase: "gmp",       // gmp → bill → dispatched → drop_0 → drop_1 → ... → return → fill → done
+  gmp:  {0:null,1:null,2:null,3:null,4:null},
+  waitBill: 0,
+  loadDoneTime: "",
+  dispatchTime: "",
+  returnTime: "",
+  drops: [],          // per-drop state
+  fillRate: 0,
+};
+const GMP_ITEMS=[
+  ["🪨","กายภาพ — ไม่มีสิ่งแปลกปลอม"],
+  ["🧪","เคมี — ไม่มีสารเคมีปนเปื้อน"],
+  ["🦠","ชีวภาพ — ไม่มีแมลง เชื้อรา"],
+  ["🔒","Security — ตู้ปิดสนิท ล็อคแน่น"],
+  ["🧼","Personal Hygiene — แต่งกายถูกต้อง"],
+];
+
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener("load",()=>{
+  const d=new Date();
+  document.getElementById("dateLabel").textContent="📅 "+d.getDate()+" มิ.ย. "+(d.getFullYear()+543);
+  const sel=document.getElementById("driverSel");
+  DRIVERS.forEach(drv=>{const o=document.createElement("option");o.value=drv.id;o.textContent=drv.plate+" — "+drv.nick;sel.appendChild(o);});
+  const p=new URLSearchParams(location.search);
+  const q=p.get("driver")||p.get("plate");
+  if(q){const f=DRIVERS.find(d=>d.id===q||d.plate===q||d.nick===q);if(f){sel.value=f.id;loadDriver();}}
+});
+
+function loadDriver(){
+  const v=document.getElementById("driverSel").value;
+  if(!v){toast("⚠️ กรุณาเลือกคนขับก่อน");return;}
+  curDrv=DRIVERS.find(d=>d.id===v);
+  if(!curDrv)return;
+  // Init trip state
+  tripState={
+    phase:"gmp",
+    gmp:{0:null,1:null,2:null,3:null,4:null},
+    waitBill:0, loadDoneTime:"", dispatchTime:"", returnTime:"",
+    drops: curDrv.drops.map(()=>({arriveTime:"",waitMin:0,doneTime:"",chk:{c1:false,c2:false,c3:false},sat:0,note:"",saved:false})),
+    fillRate:0,
+  };
+  document.getElementById("driverCard").style.display="block";
+  document.getElementById("dcPlate").textContent=curDrv.plate;
+  document.getElementById("dcName").textContent=curDrv.name+" · "+curDrv.type+" · "+curDrv.term+" · 📞 "+curDrv.phone;
+  document.getElementById("dcDrops").textContent=curDrv.drops.length;
+  document.getElementById("dcQty").textContent=curDrv.drops.reduce((s,d)=>s+d.qty,0).toLocaleString();
+  buildTruckInfo(curDrv);
+  buildCheckTab(curDrv);
+  renderFlow();
+  toast("✅ โหลดใบงาน "+curDrv.nick+" — เริ่ม GMP Check ก่อนออกรถ");
+}
+
+// ── RENDER FLOW ───────────────────────────────────────────────
+function renderFlow(){
+  updateStepper();
+  const flow=document.getElementById("tripFlow");
+  const ph=tripState.phase;
+  let html="";
+
+  // PHASE: GMP
+  const gmpDone=Object.values(tripState.gmp).every(v=>v!==null);
+  const gmpAllOK=gmpDone&&Object.values(tripState.gmp).every(v=>v==="ok");
+  html+=`
+  <div class="phase-card" style="border:2px solid ${ph==="gmp"?"#0C447C":gmpDone?"var(--teal)":"var(--bdr)"};">
+    <div class="pc-head">
+      <div class="pc-icon" style="background:var(--blu2);">🛡️</div>
+      <div style="flex:1;">
+        <div class="pc-title" style="color:var(--blu);">Step 1 — GMP/HACCP Check</div>
+        <div class="pc-sub" style="color:var(--txt3);">ตรวจก่อนออกรถ · 5 หมวด</div>
+      </div>
+      <span class="pc-badge ${gmpDone?(gmpAllOK?"pb-done":"pb-active"):"pb-pending"}">${gmpDone?(gmpAllOK?"✅ ผ่าน":"⚠️ ไม่ผ่าน"):"⏳ รอ"}</span>
+    </div>`;
+  if(ph==="gmp"){
+    html+=`<div class="pc-body">`;
+    GMP_ITEMS.forEach(([icon,label],i)=>{
+      const v=tripState.gmp[i];
+      html+=`
+      <div class="gmp-item">
+        <span style="font-size:18px;width:24px;text-align:center;">${icon}</span>
+        <div style="flex:1;"><div class="gmp-label">${label}</div></div>
+        <div class="gmp-toggle">
+          <button class="tog-ok ${v==="ok"?"on":""}" onclick="setGMP(${i},'ok',this)">✅ OK</button>
+          <button class="tog-nok ${v==="nok"?"on":""}" onclick="setGMP(${i},'nok',this)">❌</button>
+        </div>
+      </div>`;
+    });
+    html+=`
+      <button class="confirm-btn btn-navy" style="margin-top:10px;" onclick="confirmGMP()">
+        🛡️ ยืนยัน GMP แล้วไปขั้นต่อไป
+      </button>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  // PHASE: WAIT BILL
+  const billDone=ph!=="gmp"&&ph!=="bill";
+  html+=`
+  <div class="phase-card" style="border:2px solid ${ph==="bill"?"var(--amb)":billDone?"var(--teal)":"var(--bdr)"};">
+    <div class="pc-head">
+      <div class="pc-icon" style="background:var(--amb2);">🧾</div>
+      <div style="flex:1;">
+        <div class="pc-title" style="color:var(--amb);">Step 2 — รอรับ Bill / เอกสาร</div>
+        <div class="pc-sub" style="color:var(--txt3);">Internal Waiting Time · เป้า ≤ 15 นาที</div>
+      </div>
+      <span class="pc-badge ${ph==="bill"?"pb-active":billDone?"pb-done":"pb-pending"}">${billDone?"✅ "+tripState.waitBill+" นาที":ph==="bill"?"⏳ กำลังรอ":"🔒 รอ Step 1"}</span>
+    </div>`;
+  if(ph==="bill"){
+    html+=`<div class="pc-body">
+      <div class="wait-row">
+        <span style="font-size:18px;">🕐</span>
+        <div class="wait-lbl">ปิดตู้เวลา</div>
+        <input type="time" id="loadDoneInp" value="${tripState.loadDoneTime}" onchange="tripState.loadDoneTime=this.value" style="padding:6px 10px;border:1px solid var(--bdr);border-radius:8px;font-size:12px;font-family:inherit;outline:none;">
+      </div>
+      <div class="wait-row" style="border-top:1px solid var(--bdr);padding-top:10px;">
+        <span style="font-size:18px;">⏳</span>
+        <div class="wait-lbl">รอ Bill กี่นาที</div>
+        <div class="wait-ctrl">
+          <button class="wc-btn" onclick="adjBill(-5)">−</button>
+          <span class="wc-val" id="billVal">${tripState.waitBill}</span>
+          <span class="wc-unit">นาที</span>
+          <button class="wc-btn" onclick="adjBill(5)">+</button>
+        </div>
+      </div>
+      <div id="billWarn" style="display:${tripState.waitBill>15?"block":"none"};margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--red2);color:var(--red);font-size:12px;">
+        ⚠️ รอ Bill นานเกิน 15 นาที — แจ้ง Admin จัดส่ง
+      </div>
+      <button class="confirm-btn btn-amb" style="background:var(--amb);margin-top:10px;" onclick="confirmBill()">
+        🧾 บันทึกเวลารอ Bill → ไป Dispatch
+      </button>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  // PHASE: DISPATCH
+  const dispDone=ph!=="gmp"&&ph!=="bill"&&ph!=="dispatched";
+  html+=`
+  <div class="phase-card" style="border:2px solid ${ph==="dispatched"?"var(--blu)":dispDone?"var(--teal)":"var(--bdr)"};">
+    <div class="pc-head">
+      <div class="pc-icon" style="background:var(--blu2);">🔐</div>
+      <div style="flex:1;">
+        <div class="pc-title" style="color:var(--blu);">Step 3 — Dispatch ออกประตู HSL</div>
+        <div class="pc-sub" style="color:var(--txt3);">รปภ. Scan · บันทึก Timestamp</div>
+      </div>
+      <span class="pc-badge ${ph==="dispatched"?"pb-active":dispDone?"pb-done":"pb-pending"}">${dispDone?"✅ "+tripState.dispatchTime:ph==="dispatched"?"⏳ รอ Scan":"🔒 รอ Step 2"}</span>
+    </div>`;
+  if(ph==="dispatched"){
+    const disUrl=GFORM_DISPATCH+"?trip=HSL-"+DATE_CODE+"-"+curDrv.plate.replace(/\s/g,"")+"-D1&plate="+encodeURIComponent(curDrv.plate);
+    html+=`<div class="pc-body">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;">รปภ. กด Link หรือ Scan QR เพื่อ Dispatch</div>
+      <div class="act-section" style="padding:0;">
+        <a class="act-btn" href="${disUrl}" target="_blank" rel="noopener">
+          <div class="ab-icon ai-blue">🔐</div>
+          <div class="ab-body"><div class="ab-title">Dispatch รปภ. — Scan ออกประตู</div><div class="ab-sub">กดแล้ว Timestamp บันทึกอัตโนมัติ</div></div>
+          <div class="ab-qr" id="qrDisp"></div>
+          <span class="ab-arr">›</span>
+        </a>
+      </div>
+      <button class="confirm-btn btn-navy" style="margin-top:10px;" onclick="confirmDispatch()">
+        🔐 ออกประตูแล้ว — บันทึกเวลา Dispatch
+      </button>
+    </div>`;
+    setTimeout(()=>mkQR("qrDisp",disUrl),200);
+  }
+  html+=`</div>`;
+
+  // PHASES: DROPS (แต่ละจุด)
+  curDrv.drops.forEach((drop,i)=>{
+    const dropPhase="drop_"+i;
+    const isActive=ph===dropPhase;
+    const isDone=tripState.drops[i].saved;
+    const ds=tripState.drops[i];
+    const tid="HSL-"+DATE_CODE+"-"+curDrv.plate.replace(/\s/g,"")+"-D"+(i+1);
+    const mapsUrl=drop.maps;
+    const pass=Object.values(ds.chk).filter(Boolean).length;
+    const ifotPct=Math.round((pass/3)*100);
+    const satPct=ds.sat>0?Math.round((ds.sat/5)*100):0;
+    const overall=ds.sat>0?Math.round((ifotPct+satPct)/2):ifotPct;
+    const isPerfect=pass===3&&ds.sat>=4;
+
+    html+=`
+    <div class="phase-card" style="border:2px solid ${isActive?"#534AB7":isDone?"var(--teal)":"var(--bdr)"};">
+      <div style="height:4px;background:${STRIPES[i%STRIPES.length]};"></div>
+      <div class="pc-head">
+        <div style="flex:1;">
+          <div class="drop-badges">
+            <span class="drop-num-badge">จุดที่ ${i+1}</span>
+            <span class="round-badge rb-${drop.round}">รอบ ${drop.round}</span>
+            ${isDone?`<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:var(--grn2);color:var(--grn);font-weight:700;">✅ ${overall}%${isPerfect?" 🏆":""}</span>`:""}
+          </div>
+          <div class="drop-nick">${drop.nick}</div>
+          <div style="font-size:10px;color:var(--txt3);margin-top:1px;">${drop.company}</div>
+        </div>
+        <span class="pc-badge ${isActive?"pb-active":isDone?"pb-done":"pb-pending"}">${isDone?"✅ เสร็จ":isActive?"🚛 กำลังส่ง":"🔒 รอ"}</span>
+      </div>`;
+
+    if(isActive){
+      html+=`
+      <!-- Info -->
+      <div class="info-grid" style="border-top:1px solid var(--bdr);">
+        <div class="ig-cell"><div class="ig-l">📍 โซน</div><div class="ig-v" style="font-size:12px;">${drop.zone}</div></div>
+        <div class="ig-cell"><div class="ig-l">📦 จำนวน</div><div class="ig-v">${drop.qty.toLocaleString()} ชิ้น</div></div>
+      </div>
+      <div class="po-row"><span style="font-size:10px;color:var(--txt3);">PO</span>${drop.pos.map(p=>'<span class="po-chip">'+p+'</span>').join("")}</div>
+      <div class="cond-row"><div class="cond-l">⚠ เงื่อนไข</div><div class="cond-t">${drop.cond}</div></div>
+      <!-- Maps -->
+      <div class="act-section" style="border-top:1px solid var(--bdr);">
+        <a class="act-btn" href="${mapsUrl}" target="_blank" rel="noopener">
+          <div class="ab-icon ai-green">📍</div>
+          <div class="ab-body"><div class="ab-title">Google Maps — นำทาง</div><div class="ab-sub">กดเพื่อเปิดแผนที่ไป ${drop.nick}</div></div>
+          <div class="ab-qr" id="qrMap${i}"></div>
+          <span class="ab-arr">›</span>
+        </a>
+      </div>
+      <!-- Time Tracking -->
+      <div class="time-track">
+        <div class="tt-title">⏱️ Time Tracking — จุดที่ ${i+1} (${drop.nick})</div>
+        <div class="tt-row">
+          <span class="tt-icon">🕐</span>
+          <div class="tt-label">เวลาถึงลูกค้า</div>
+          <input type="time" class="tt-time-inp" id="arrive${i}" value="${ds.arriveTime}" onchange="tripState.drops[${i}].arriveTime=this.value">
+        </div>
+        <div class="tt-row">
+          <span class="tt-icon">⏳</span>
+          <div class="tt-label">รอลงสินค้า</div>
+          <div class="tt-wait-ctrl">
+            <button class="twc-btn" onclick="adjDropWait(${i},-5)">−</button>
+            <span class="twc-val" id="dropWait${i}">${ds.waitMin}</span>
+            <span class="twc-unit">นาที</span>
+            <button class="twc-btn" onclick="adjDropWait(${i},5)">+</button>
+          </div>
+        </div>
+        <div class="tt-row">
+          <span class="tt-icon">✅</span>
+          <div class="tt-label">ออกจากจุดลูกค้า</div>
+          <input type="time" class="tt-time-inp" id="done${i}" value="${ds.doneTime}" onchange="tripState.drops[${i}].doneTime=this.value">
+        </div>
+      </div>
+      <!-- IFOT -->
+      <div class="ifot-section">
+        <div class="ifot-title">📦 IFOT & ความพึงพอใจ — ${drop.nick}</div>
+        <div class="chk-item" onclick="toggleDropChk(${i},'c1')">
+          <div class="chk-box ${ds.chk.c1?"on":""}" id="chk${i}c1">✓</div>
+          <span class="chk-lbl">ส่งตรงเวลา</span><span style="font-size:16px;">⏰</span>
+        </div>
+        <div class="chk-item" onclick="toggleDropChk(${i},'c2')">
+          <div class="chk-box ${ds.chk.c2?"on":""}" id="chk${i}c2">✓</div>
+          <span class="chk-lbl">สินค้าถูกต้องครบถ้วน</span><span style="font-size:16px;">📦</span>
+        </div>
+        <div class="chk-item" onclick="toggleDropChk(${i},'c3')">
+          <div class="chk-box ${ds.chk.c3?"on":""}" id="chk${i}c3">✓</div>
+          <span class="chk-lbl">เอกสารถูกต้องครบถ้วน</span><span style="font-size:16px;">📋</span>
+        </div>
+        <div style="margin-top:10px;font-size:11px;font-weight:600;color:var(--txt3);">ความพึงพอใจ</div>
+        <div class="sat-row" style="margin-top:6px;">
+          ${[1,2,3,4,5].map(s=>`<div class="sat-btn ${ds.sat===s?"on":""}" onclick="setDropSat(${i},${s},this)"><span class="sat-ico">${["","😞","😐","🙂","😊","🤩"][s]}</span><span class="sat-lbl">${["","ต้องปรับ","พอใช้","ดี","ดีมาก","ดีเยี่ยม"][s]}</span></div>`).join("")}
+        </div>
+        <textarea class="note-inp" id="note${i}" placeholder="หมายเหตุ..." style="margin-top:8px;" onchange="tripState.drops[${i}].note=this.value">${ds.note}</textarea>
+        <div id="ifotBar${i}" style="margin-top:8px;padding:7px 10px;border-radius:8px;background:var(--surf);font-size:12px;color:var(--txt3);text-align:center;">เลือกรายการที่ผ่าน</div>
+      </div>
+      <div style="padding:12px 14px;">
+        <button class="confirm-btn btn-teal" onclick="confirmDrop(${i})" id="dropBtn${i}">
+          ✅ บันทึกจุดที่ ${i+1} → ${i+1<curDrv.drops.length?"ไปจุดที่ "+(i+2):"กลับ HSL"}
+        </button>
+      </div>`;
+    } else if(isDone){
+      // Show summary for done drop
+      html+=`
+      <div style="padding:10px 14px;display:flex;gap:16px;border-top:1px solid var(--bdr);flex-wrap:wrap;">
+        <div style="font-size:11px;"><span style="color:var(--txt3);">ถึง </span><b>${ds.arriveTime||"–"}</b></div>
+        <div style="font-size:11px;"><span style="color:var(--txt3);">รอ </span><b>${ds.waitMin} นาที</b></div>
+        <div style="font-size:11px;"><span style="color:var(--txt3);">ออก </span><b>${ds.doneTime||"–"}</b></div>
+        <div style="font-size:11px;"><span style="color:var(--txt3);">IFOT </span><b style="color:${ifotPct>=90?"var(--grn)":"var(--amb)"};">${ifotPct}%</b></div>
+        <div style="font-size:11px;"><span style="color:var(--txt3);">พึงพอใจ </span><b>${["","😞","😐","🙂","😊","🤩"][ds.sat]}</b></div>
+      </div>`;
+    }
+    html+=`</div>`;
+  });
+
+  // PHASE: RETURN
+  const retDone=ph==="fill"||ph==="done";
+  html+=`
+  <div class="phase-card" style="border:2px solid ${ph==="return"?"var(--grn)":retDone?"var(--teal)":"var(--bdr)"};">
+    <div class="pc-head">
+      <div class="pc-icon" style="background:var(--grn2);">🏠</div>
+      <div style="flex:1;">
+        <div class="pc-title" style="color:var(--grn);">Step ${4+curDrv.drops.length} — กลับถึง HSL</div>
+        <div class="pc-sub" style="color:var(--txt3);">บันทึกเวลากลับ → คำนวณ Total Trip Time</div>
+      </div>
+      <span class="pc-badge ${ph==="return"?"pb-active":retDone?"pb-done":"pb-pending"}">${retDone?"✅ "+tripState.returnTime:ph==="return"?"🏠 กด!":"🔒 รอ"}</span>
+    </div>`;
+  if(ph==="return"){
+    html+=`<div class="pc-body">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;">กดปุ่มด้านล่างเมื่อรถกลับถึง HSL</div>
+      <div style="padding:8px 0;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:16px;">🕐</span>
+        <div style="flex:1;font-size:12px;font-weight:500;">เวลากลับถึง HSL</div>
+        <input type="time" class="tt-time-inp" id="returnInp" value="${tripState.returnTime}" onchange="tripState.returnTime=this.value">
+      </div>
+      <button class="confirm-btn btn-teal" style="margin-top:10px;" onclick="confirmReturn()">
+        🏠 กลับถึง HSL แล้ว — บันทึกและดูสรุป
+      </button>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  // PHASE: FILL RATE (ท้ายสุด — หลังกลับแล้ว)
+  if(ph==="fill"||ph==="done"){
+    const summary=calcSummary();
+    html+=`
+    <!-- Summary -->
+    <div class="summary-card">
+      <div class="sc-title">📊 สรุป Trip วันนี้</div>
+      <div class="sc-grid">
+        <div class="sc-item"><div class="sc-val">${summary.totalTrip}</div><div class="sc-lbl">Total (นาที)</div></div>
+        <div class="sc-item"><div class="sc-val">${summary.totalTravel}</div><div class="sc-lbl">วิ่ง (นาที)</div></div>
+        <div class="sc-item"><div class="sc-val">${summary.totalService}</div><div class="sc-lbl">ส่ง (นาที)</div></div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-r-item"><span class="sc-r-key">⏰ ปิดตู้</span><span class="sc-r-val">${tripState.loadDoneTime||"–"}</span></div>
+        <div class="sc-r-item"><span class="sc-r-key">🧾 รอ Bill</span><span class="sc-r-val">${tripState.waitBill} นาที</span></div>
+        <div class="sc-r-item"><span class="sc-r-key">🔐 Dispatch</span><span class="sc-r-val">${tripState.dispatchTime||"–"}</span></div>
+        ${curDrv.drops.map((d,i)=>`
+        <div class="sc-r-item"><span class="sc-r-key">📍 จุด${i+1} ${d.nick}</span><span class="sc-r-val">${tripState.drops[i].arriveTime||"–"} → ${tripState.drops[i].doneTime||"–"} (รอ ${tripState.drops[i].waitMin} นาที)</span></div>`).join("")}
+        <div class="sc-r-item"><span class="sc-r-key">🏠 กลับ HSL</span><span class="sc-r-val">${tripState.returnTime||"–"}</span></div>
+      </div>
+    </div>
+
+    <!-- Fill Rate (ท้ายสุด) -->
+    <div class="phase-card" style="border:2px solid ${ph==="fill"?"var(--gold)":tripState.fillRate>0?"var(--teal)":"var(--bdr)"};">
+      <div class="pc-head">
+        <div class="pc-icon" style="background:var(--gold3,#FDF3DC);">🚛</div>
+        <div style="flex:1;">
+          <div class="pc-title" style="color:var(--gold);">Step สุดท้าย — Truck Fill Rate</div>
+          <div class="pc-sub" style="color:var(--txt3);">บันทึกหลังส่งของครบ · รถโหลดเต็มแค่ไหน</div>
+        </div>
+        <span class="pc-badge ${tripState.fillRate>0?"pb-done":"pb-active"}">${tripState.fillRate>0?"✅ "+tripState.fillRate+"%":"⏳ รอกรอก"}</span>
+      </div>
+      <div class="pc-body">
+        <div style="font-size:12px;color:var(--txt3);margin-bottom:10px;text-align:center;">รวม LTL ทั้งหมดที่ส่งในเที่ยวนี้ คิดเป็น % ของพื้นที่รถ</div>
+        <div class="fill-grid">
+          <div class="fill-btn ${tripState.fillRate===25?"on":""}" onclick="setFill(25,this)">
+            <div class="fill-circle" style="background:#9E9E9E;">25%</div>
+            <div class="fill-lbl">น้อย</div>
+            <div class="fill-sublbl">LTL เล็กน้อย</div>
+          </div>
+          <div class="fill-btn ${tripState.fillRate===50?"on":""}" onclick="setFill(50,this)">
+            <div class="fill-circle" style="background:#FF9800;">50%</div>
+            <div class="fill-lbl">ครึ่งคัน</div>
+            <div class="fill-sublbl">LTL ปานกลาง</div>
+          </div>
+          <div class="fill-btn ${tripState.fillRate===75?"on":""}" onclick="setFill(75,this)">
+            <div class="fill-circle" style="background:#2196F3;">75%</div>
+            <div class="fill-lbl">เกือบเต็ม</div>
+            <div class="fill-sublbl">ใช้รถได้ดี</div>
+          </div>
+          <div class="fill-btn ${tripState.fillRate===90?"on":""}" onclick="setFill(90,this)">
+            <div class="fill-circle" style="background:#0F6E56;">90%+</div>
+            <div class="fill-lbl">เต็มคัน</div>
+            <div class="fill-sublbl">FTL เต็ม</div>
+          </div>
+        </div>
+        <div id="fillNote" style="display:${tripState.fillRate>0?"block":"none"};margin-top:10px;padding:8px 12px;border-radius:9px;font-size:12px;text-align:center;"></div>
+        ${tripState.fillRate>0?`
+        <button class="confirm-btn btn-gold" style="margin-top:10px;" onclick="confirmFill()">
+          🏁 บันทึก Fill Rate → ปิดเที่ยว
+        </button>`:""}
+      </div>
+    </div>`;
+  }
+
+  // PHASE: DONE
+  if(ph==="done"){
+    html+=`
+    <div style="background:var(--grn);border-radius:14px;padding:20px;text-align:center;margin-top:4px;">
+      <div style="font-size:40px;margin-bottom:10px;">🎉</div>
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;">ปิดเที่ยวเรียบร้อยแล้ว!</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.7);">ข้อมูลทั้งหมดบันทึกลง Google Sheet แล้ว<br>ขอบคุณที่ขับรถปลอดภัย 🚛</div>
+    </div>`;
+  }
+
+  flow.innerHTML=html;
+
+  // Generate QR codes
+  if(ph.startsWith("drop_")){
+    const i=parseInt(ph.split("_")[1]);
+    setTimeout(()=>mkQR("qrMap"+i,curDrv.drops[i].maps),200);
+  }
+  updateStepper();
+}
+
+function updateStepper(){
+  if(!curDrv)return;
+  const ph=tripState.phase;
+  const steps=[
+    {id:"gmp",label:"GMP"},
+    {id:"bill",label:"รอBill"},
+    {id:"dispatched",label:"Dispatch"},
+    ...curDrv.drops.map((_,i)=>({id:"drop_"+i,label:"จุด"+(i+1)})),
+    {id:"return",label:"กลับHSL"},
+    {id:"fill",label:"Fill Rate"},
+  ];
+  const phOrder=steps.map(s=>s.id);
+  const curIdx=phOrder.indexOf(ph);
+
+  document.getElementById("stepper").innerHTML=steps.map((s,i)=>{
+    const isDone=i<curIdx;
+    const isActive=i===curIdx;
+    const cls=isDone?"sd-done":isActive?"sd-active":"sd-todo";
+    const lcls=isDone?"sl-done":isActive?"sl-active":"sl-todo";
+    return `
+    <div class="step">
+      <div class="step-dot ${cls}">${isDone?"✓":i+1}</div>
+      <span class="step-lbl ${lcls}">${s.label}</span>
+    </div>
+    ${i<steps.length-1?'<div class="step-line"></div>':""}`;
+  }).join("");
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────
+function setGMP(idx,val,el){
+  tripState.gmp[idx]=val;
+  // Toggle UI
+  el.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("on"));
+  el.classList.add("on");
+}
+
+function confirmGMP(){
+  const vals=Object.values(tripState.gmp);
+  if(vals.some(v=>v===null)){toast("⚠️ กรุณาตรวจสอบทุกหมวดก่อน");return;}
+  const allOK=vals.every(v=>v==="ok");
+  if(!allOK&&!confirm("⚠️ มีหมวด GMP ที่ไม่ผ่าน ยืนยันดำเนินการต่อไหม?")){return;}
+  tripState.phase="bill";
+  // Set load done time
+  const now=new Date();
+  tripState.loadDoneTime=now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
+  renderFlow();
+  toast(allOK?"✅ GMP ผ่านทุกข้อ — กรอกเวลารอ Bill":"⚠️ บันทึก GMP แล้ว");
+}
+
+function adjBill(d){
+  tripState.waitBill=Math.max(0,Math.min(60,tripState.waitBill+d));
+  const el=document.getElementById("billVal");
+  if(el)el.textContent=tripState.waitBill;
+  const warn=document.getElementById("billWarn");
+  if(warn)warn.style.display=tripState.waitBill>15?"block":"none";
+}
+
+function confirmBill(){
+  tripState.phase="dispatched";
+  renderFlow();
+  toast("🧾 บันทึกเวลารอ Bill "+tripState.waitBill+" นาที");
+}
+
+function confirmDispatch(){
+  const now=new Date();
+  tripState.dispatchTime=now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
+  tripState.phase="drop_0";
+  saveDispatch();
+  renderFlow();
+  toast("🔐 Dispatch "+tripState.dispatchTime+" — มุ่งหน้าจุดที่ 1");
+}
+
+async function saveDispatch(){
+  const now=new Date();
+  try{
+    await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action:"dispatchTrip",tripId:"HSL-"+DATE_CODE+"-"+curDrv.plate.replace(/\s/g,"")+"-D1",
+        data:{
+          plate:curDrv.plate, driver_nick:curDrv.nick, driver_id:curDrv.id,
+          dispatch_time:tripState.dispatchTime, load_done_time:tripState.loadDoneTime,
+          wait_bill_min:tripState.waitBill, gmp_all_pass:Object.values(tripState.gmp).every(v=>v==="ok")?"Y":"N",
+        }
+      })
+    });
+  }catch(e){}
+}
+
+function toggleDropChk(dropIdx,key){
+  tripState.drops[dropIdx].chk[key]=!tripState.drops[dropIdx].chk[key];
+  const el=document.getElementById("chk"+dropIdx+key);
+  if(el){
+    el.classList.toggle("on",tripState.drops[dropIdx].chk[key]);
+    el.style.color=tripState.drops[dropIdx].chk[key]?"#fff":"transparent";
+  }
+  updateIfotBar(dropIdx);
+}
+
+function setDropSat(dropIdx,score,el){
+  tripState.drops[dropIdx].sat=score;
+  el.closest(".sat-row").querySelectorAll(".sat-btn").forEach(b=>b.classList.remove("on"));
+  el.classList.add("on");
+  updateIfotBar(dropIdx);
+}
+
+function adjDropWait(dropIdx,d){
+  tripState.drops[dropIdx].waitMin=Math.max(0,Math.min(180,tripState.drops[dropIdx].waitMin+d));
+  const el=document.getElementById("dropWait"+dropIdx);
+  if(el)el.textContent=tripState.drops[dropIdx].waitMin;
+}
+
+function updateIfotBar(dropIdx){
+  const ds=tripState.drops[dropIdx];
+  const pass=Object.values(ds.chk).filter(Boolean).length;
+  const ifotPct=Math.round((pass/3)*100);
+  const satPct=ds.sat>0?Math.round((ds.sat/5)*100):0;
+  const overall=ds.sat>0?Math.round((ifotPct+satPct)/2):ifotPct;
+  const isPerfect=pass===3&&ds.sat>=4;
+  const bar=document.getElementById("ifotBar"+dropIdx);
+  if(bar){
+    bar.textContent=`IFOT ${pass}/3 (${ifotPct}%)${ds.sat>0?" · "+SAT_LABELS[ds.sat]+" "+satPct+"% → รวม "+overall+"%":""} ${isPerfect?"🏆":""}`;
+    bar.style.background=isPerfect?"var(--grn2)":pass===0?"var(--surf)":"var(--amb2)";
+    bar.style.color=isPerfect?"var(--grn)":pass===0?"var(--txt3)":"var(--amb)";
+  }
+}
+
+async function confirmDrop(i){
+  const ds=tripState.drops[i];
+  ds.note=document.getElementById("note"+i)?.value||"";
+  ds.arriveTime=document.getElementById("arrive"+i)?.value||"";
+  ds.doneTime=document.getElementById("done"+i)?.value||"";
+  if(!ds.arriveTime){toast("⚠️ กรุณากรอกเวลาถึงลูกค้า");return;}
+  if(ds.sat===0){toast("⚠️ กรุณาเลือกระดับความพึงพอใจ");return;}
+  ds.saved=true;
+  // Save to API
+  const now=new Date();
+  const pass=Object.values(ds.chk).filter(Boolean).length;
+  const ifotPct=Math.round((pass/3)*100);
+  const satPct=Math.round((ds.sat/5)*100);
+  const overall=Math.round((ifotPct+satPct)/2);
+  const isPerfect=pass===3&&ds.sat>=4;
+  const tid="HSL-"+DATE_CODE+"-"+curDrv.plate.replace(/\s/g,"")+"-D"+(i+1);
+  try{
+    await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action:"submitEval",data:{
+        timestamp:now.toISOString(), date:TODAY_STR,
+        year:now.getFullYear()+543, month:now.getMonth()+1,
+        month_str:["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][now.getMonth()+1],
+        week:Math.ceil(now.getDate()/7),
+        day_of_week:["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."][now.getDay()],
+        trip_id:tid, drop_index:i+1,
+        plate:curDrv.plate, driver_nick:curDrv.nick, driver_id:curDrv.id,
+        nickname:curDrv.drops[i].nick, zone:curDrv.drops[i].zone,
+        q1_ontime:ds.chk.c1?5:1, q2_complete:ds.chk.c2?5:1, q3_document:ds.chk.c3?5:1, q4_satisfy:ds.sat,
+        ifot_pass:pass, ifot_pct:ifotPct, sat_pct:satPct, overall_pct:overall, perfect_order:isPerfect?"Y":"N",
+        arrival_time:ds.arriveTime, wait_minutes:ds.waitMin, done_time:ds.doneTime,
+        dispatch_time:tripState.dispatchTime, load_done_time:tripState.loadDoneTime,
+        wait_bill_min:tripState.waitBill, note:ds.note,
+      }})
+    });
+  }catch(e){}
+  // Next phase
+  if(i+1<curDrv.drops.length){
+    tripState.phase="drop_"+(i+1);
+    toast("✅ บันทึกจุดที่ "+(i+1)+" → มุ่งหน้าจุดที่ "+(i+2));
+  } else {
+    tripState.phase="return";
+    toast("✅ ส่งครบทุกจุดแล้ว — กลับ HSL");
+  }
+  renderFlow();
+}
+
+function confirmReturn(){
+  const inp=document.getElementById("returnInp");
+  if(inp)tripState.returnTime=inp.value;
+  if(!tripState.returnTime){
+    const now=new Date();
+    tripState.returnTime=now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
+  }
+  tripState.phase="fill";
+  renderFlow();
+  toast("🏠 กลับถึง HSL "+tripState.returnTime+" — กรอก Truck Fill Rate สุดท้าย");
+}
+
+function setFill(pct,el){
+  tripState.fillRate=pct;
+  document.querySelectorAll(".fill-btn").forEach(b=>b.classList.remove("on"));
+  el.classList.add("on");
+  const notes={
+    25:{msg:"📦 LTL น้อย — พิจารณารวม Order หรือปรับเส้นทาง",bg:"var(--red2)",col:"var(--red)"},
+    50:{msg:"📦 LTL ครึ่งคัน — มีโอกาสเพิ่ม Stop ได้",bg:"var(--amb2)",col:"var(--amb)"},
+    75:{msg:"✅ ใช้รถได้ดี",bg:"var(--blu2)",col:"var(--blu)"},
+    90:{msg:"🏆 FTL เต็มประสิทธิภาพ",bg:"var(--grn2)",col:"var(--grn)"},
+  };
+  const n=notes[pct];
+  const noteEl=document.getElementById("fillNote");
+  if(noteEl){noteEl.style.display="block";noteEl.style.background=n.bg;noteEl.style.color=n.col;noteEl.textContent=n.msg;}
+  renderFlow();
+}
+
+async function confirmFill(){
+  if(!tripState.fillRate){toast("⚠️ กรุณาเลือก Fill Rate ก่อน");return;}
+  const summary=calcSummary();
+  const now=new Date();
+  try{
+    await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action:"submitUtil",data:{
+        timestamp:now.toISOString(), date:TODAY_STR,
+        year:now.getFullYear()+543, month:now.getMonth()+1,
+        plate:curDrv.plate, driver_nick:curDrv.nick, driver_id:curDrv.id,
+        fill_rate_pct:tripState.fillRate,
+        fill_type:tripState.fillRate>=90?"FTL":"LTL",
+        total_drops:curDrv.drops.length,
+        total_qty:curDrv.drops.reduce((s,d)=>s+d.qty,0),
+        zones:[...new Set(curDrv.drops.map(d=>d.zone))].join(","),
+        total_trip_min:summary.totalTrip,
+        total_travel_min:summary.totalTravel,
+        total_service_min:summary.totalService,
+        wait_bill_min:tripState.waitBill,
+        load_done_time:tripState.loadDoneTime,
+        dispatch_time:tripState.dispatchTime,
+        return_time:tripState.returnTime,
+      }})
+    });
+  }catch(e){}
+  tripState.phase="done";
+  renderFlow();
+  toast("🏁 ปิดเที่ยวเรียบร้อย! Fill Rate "+tripState.fillRate+"% · Total "+summary.totalTrip+" นาที");
+}
+
+function calcSummary(){
+  const toMin=t=>{if(!t)return 0;const[h,m]=t.split(":").map(Number);return h*60+m;};
+  const dispM=toMin(tripState.dispatchTime);
+  const retM=toMin(tripState.returnTime);
+  const totalTrip=retM>dispM?retM-dispM:0;
+  const totalService=tripState.drops.reduce((s,d)=>s+d.waitMin,0);
+  const totalTravel=Math.max(0,totalTrip-totalService-tripState.waitBill);
+  return {totalTrip,totalTravel,totalService};
+}
+
+// ── QR ────────────────────────────────────────────────────────
+function mkQR(id,url){
+  const el=document.getElementById(id);
+  if(!el||!url||url.includes("YOUR_")){if(el)el.innerHTML='<div style="width:40px;height:40px;background:var(--surf);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;">🔗</div>';return;}
+  try{new QRCode(el,{text:url,width:40,height:40,colorDark:"#0B1F33",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M});}catch(e){}
+}
+
+// ── TRUCK INFO ────────────────────────────────────────────────
+function buildTruckInfo(drv){
+  const rows=[["🚛",drv.plate],["👤",drv.name],["📞",drv.phone],["🚛",drv.type],["📍",drv.term],["🛣️",drv.km+" กม."],["📋","✅ 31/12/2569"],["💰","✅ 31/03/2570"],["📄","✅ 31/12/2569"]];
+  const labels=["ทะเบียน","คนขับ","เบอร์โทร","ประเภท","Terminal","ไมล์","ประกันภัย","ภาษี","พรบ."];
+  document.getElementById("truckInfoBody").innerHTML=rows.map(([ico,v],i)=>
+    `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px;"><span style="color:var(--txt3);">${ico} ${labels[i]}</span><span style="font-weight:500;">${v}</span></div>`
+  ).join("");
+}
+
+function buildCheckTab(drv){
+  const url=GFORM_CHECK+"?plate="+encodeURIComponent(drv.plate)+"&driver="+encodeURIComponent(drv.nick)+"&date="+encodeURIComponent(TODAY_STR);
+  document.getElementById("checkLinkArea").innerHTML=`
+    <a href="${url}" target="_blank" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:1px solid var(--grn);background:var(--grn2);text-decoration:none;margin-bottom:12px;">
+      <div style="width:42px;height:42px;border-radius:11px;background:var(--grn);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">✅</div>
+      <div><div style="font-size:14px;font-weight:600;color:var(--grn);">Daily Check วันนี้</div><div style="font-size:11px;color:var(--teal);margin-top:2px;">35 รายการ · pre-fill ${drv.plate}</div></div>
+      <div style="margin-left:auto;font-size:18px;color:var(--grn);">›</div>
+    </a>
+    <div style="font-size:12px;color:var(--txt3);text-align:center;"><b style="color:var(--amb);">⏰ กรอกก่อน 07:30 น. ทุกวัน</b></div>`;
+}
+
+function switchTab(name,el){
+  ["trip","truck","check"].forEach(t=>{document.getElementById("tab-"+t).style.display=t===name?"block":"none";});
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  const idx=["trip","truck","check"].indexOf(name);
+  document.querySelectorAll(".tab")[idx]&&document.querySelectorAll(".tab")[idx].classList.add("active");
+}
+
+let _tt;
+function toast(msg){clearTimeout(_tt);const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");_tt=setTimeout(()=>t.classList.remove("show"),3500);}
+</script>
+</body>
+</html>
