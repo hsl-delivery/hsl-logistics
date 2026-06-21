@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B1F33">
+<title>HSL — ติดตามสถานะจัดส่ง</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#0B1F33;--navy2:#152C44;--gold:#C8962A;--gold2:#E8B84B;
+  --teal:#0F6E56;--teal2:#E1F5EE;--red:#A32D2D;--red2:#FCEBEB;
+  --amb:#854F0B;--amb2:#FAEEDA;--blu:#0C447C;--blu2:#E6F1FB;
+  --grn:#27500A;--grn2:#EAF3DE;--pur:#3C3489;--pur2:#EEEDFE;
+  --surf:#F0F2F5;--wht:#fff;--bdr:#E2E6EC;
+  --txt:#0B1525;--txt2:#3A4E63;--txt3:#6B7E92;
+}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--surf);color:var(--txt);min-height:100vh;padding-bottom:40px;}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.logo{font-size:14px;font-weight:700;color:var(--gold2);letter-spacing:-.01em;}
+.logo span{display:block;font-size:10px;color:rgba(255,255,255,.35);font-weight:400;margin-top:1px;}
+.ro-badge{font-size:10px;padding:3px 9px;border-radius:99px;background:rgba(200,150,42,.15);color:var(--gold2);border:1px solid rgba(200,150,42,.3);}
+.search-row{display:flex;gap:8px;align-items:center;}
+.search-wrap{flex:1;position:relative;}
+.search-wrap input{width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px 12px 8px 34px;font-size:13px;color:#fff;font-family:inherit;outline:none;}
+.search-wrap input::placeholder{color:rgba(255,255,255,.35);}
+.search-wrap input:focus{border-color:var(--gold);background:rgba(255,255,255,.14);}
+.search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.5;pointer-events:none;}
+.round-sel{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px 10px;font-size:13px;color:#fff;font-family:inherit;outline:none;-webkit-appearance:none;}
+.round-sel option{background:var(--navy2);}
+.refresh-btn{width:36px;height:36px;border-radius:10px;background:rgba(200,150,42,.15);border:1px solid rgba(200,150,42,.3);color:var(--gold2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.refresh-btn:active{transform:scale(.92);}
+.refresh-btn.spinning{animation:spin .7s linear;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── SUMMARY STRIP ── */
+.summary-strip{display:flex;gap:0;overflow-x:auto;padding:10px 16px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.summary-strip::-webkit-scrollbar{display:none;}
+.stat-pill{display:flex;flex-direction:column;align-items:center;min-width:72px;padding:8px 10px;background:var(--wht);border-radius:12px;margin-right:8px;border:1px solid var(--bdr);}
+.stat-pill:last-child{margin-right:0;}
+.stat-pill .val{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1;}
+.stat-pill .lbl{font-size:10px;color:var(--txt3);margin-top:3px;white-space:nowrap;}
+.refresh-note{font-size:10px;color:var(--txt3);padding:6px 16px 2px;display:flex;align-items:center;gap:4px;}
+
+/* ── TRIP CARDS ── */
+.trip-list{padding:10px 16px;}
+.trip-card{background:var(--wht);border-radius:16px;border:1px solid var(--bdr);margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.trip-card-head{background:var(--navy);padding:11px 14px;display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;}
+.trip-card-head:active{opacity:.88;}
+.thd-left .round{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.02em;}
+.thd-left .meta{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+.thd-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+.status-pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;}
+.sp-active{background:#0F4A37;color:#5DCAA5;}
+.sp-done{background:#1B3A0A;color:#97C459;}
+.sp-wait{background:#3A2C06;color:#EF9F27;}
+.pct-label{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;}
+
+/* ── PROGRESS BAR ── */
+.prog-wrap{padding:0 14px 2px;background:var(--navy);}
+.prog-track{height:4px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden;}
+.prog-fill{height:4px;border-radius:2px;transition:width .5s ease;}
+
+/* ── TIMELINE STEPPER ── */
+.stepper-wrap{padding:12px 14px 8px;background:var(--navy);}
+.stepper{display:flex;align-items:center;}
+.step-node{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;border:2px solid transparent;cursor:default;}
+.sn-done{background:#1D7A4E;border-color:#1D7A4E;color:#fff;}
+.sn-active{background:var(--gold);border-color:var(--gold);color:var(--navy);box-shadow:0 0 0 3px rgba(200,150,42,.25);}
+.sn-next{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.4);}
+.sn-pending{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.2);}
+.step-line{flex:1;height:2px;min-width:6px;}
+.sl-done{background:#1D7A4E;}
+.sl-active{background:linear-gradient(90deg,#1D7A4E,var(--gold));}
+.sl-pending{background:rgba(255,255,255,.1);}
+.step-labels{display:flex;align-items:flex-start;padding:5px 0 4px;}
+.step-lbl{font-size:9px;color:rgba(255,255,255,.35);text-align:center;line-height:1.25;flex-shrink:0;}
+.step-lbl.done{color:rgba(255,255,255,.55);}
+.step-lbl.active{color:var(--gold2);font-weight:600;}
+.step-spacer{flex:1;}
+
+/* ── ETA BOX ── */
+.eta-box{margin:0 14px 10px;background:rgba(200,150,42,.1);border:1px solid rgba(200,150,42,.25);border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;}
+.eta-lbl{font-size:11px;color:rgba(255,255,255,.5);}
+.eta-val{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--gold2);}
+.eta-note{font-size:10px;color:rgba(255,255,255,.35);margin-top:1px;}
+
+/* ── STOP LIST ── */
+.stops-wrap{padding:10px 14px 14px;}
+.stop-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);}
+.stop-row:last-child{border-bottom:none;}
+.stop-dot-col{display:flex;flex-direction:column;align-items:center;padding-top:2px;}
+.stop-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.stop-vline{width:2px;flex:1;min-height:16px;margin-top:3px;border-radius:1px;}
+.stop-body{flex:1;}
+.stop-name{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:2px;}
+.stop-code{font-size:11px;color:var(--txt3);}
+.stop-time{font-size:12px;color:var(--txt2);margin-top:3px;}
+.stop-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;margin-top:4px;}
+.sb-done{background:var(--grn2);color:var(--grn);}
+.sb-active{background:var(--amb2);color:var(--amb);}
+.sb-pending{background:var(--surf);color:var(--txt3);}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px 24px;}
+.empty-ico{font-size:40px;display:block;margin-bottom:12px;}
+.empty-title{font-size:15px;font-weight:600;color:var(--txt2);margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--txt3);}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:12px;font-size:12px;font-weight:500;z-index:999;opacity:0;transition:all .25s;border-left:3px solid var(--gold);white-space:nowrap;pointer-events:none;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── KPI MINI ROW ── */
+.kpi-mini{display:flex;gap:6px;padding:10px 14px 0;}
+.km-box{flex:1;background:var(--surf);border-radius:8px;padding:6px 8px;text-align:center;}
+.km-val{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--txt);line-height:1;}
+.km-lbl{font-size:9px;color:var(--txt3);margin-top:2px;}
+
+/* ── COLLAPSE ARROW ── */
+.chevron{font-size:14px;color:rgba(255,255,255,.35);transition:transform .25s;margin-top:2px;}
+.chevron.open{transform:rotate(180deg);}
+.collapsible{overflow:hidden;transition:max-height .35s ease;}
+
+/* ── STEPPER ETA ROW ── */
+.stepper-eta-row{display:flex;padding:0 14px 10px;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.stepper-eta-row::-webkit-scrollbar{display:none;}
+.eta-chip{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;}
+.eta-chip-spacer{flex:1;}
+.eta-chip-val{font-size:11px;font-weight:700;color:#FF4444;font-family:'IBM Plex Mono',monospace;white-space:nowrap;background:rgba(255,68,68,.13);border:1px solid rgba(255,68,68,.3);border-radius:6px;padding:2px 6px;line-height:1.3;}
+.eta-chip-lbl{font-size:9px;color:rgba(255,255,255,.35);margin-top:2px;white-space:nowrap;}
+.eta-chip-val.done{color:#5DCAA5;background:rgba(93,202,165,.1);border-color:rgba(93,202,165,.25);}
+.eta-chip-val.active{color:#EF9F27;background:rgba(239,159,39,.12);border-color:rgba(239,159,39,.3);}
+
+/* ── DRIVER INFO BAR ── */
+.drv-bar{background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.drv-chip{display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.65);}
+.drv-chip b{color:#fff;font-weight:600;}
+.drv-chip a{color:var(--gold2);text-decoration:none;font-weight:600;}
+.drv-chip a:active{opacity:.7;}
+.drv-sep{width:1px;height:14px;background:rgba(255,255,255,.15);}
+
+/* ── STOP ETA PILL ── */
+.stop-eta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:99px;margin-top:5px;background:var(--blu2);color:var(--blu);}
+.stop-eta-late{background:var(--red2);color:var(--red);}
+.stop-time-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">🚛 HSL Logistics<span>ติดตามสถานะจัดส่ง · ฝ่ายขาย</span></div>
+    <span class="ro-badge">👁 Read Only</span>
+  </div>
+  <div class="search-row">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" id="searchInput" placeholder="ชื่อลูกค้า หรือ Customer Code…" oninput="filterAndRender()" autocomplete="off">
+    </div>
+    <select class="round-sel" id="roundSel" onchange="filterAndRender()">
+      <option value="">ทุกรอบ</option>
+      <option value="1">รอบที่ 1</option>
+      <option value="2">รอบที่ 2</option>
+      <option value="3">รอบที่ 3</option>
+    </select>
+    <button class="refresh-btn" id="refreshBtn" onclick="doRefresh()" title="รีเฟรช">↻</button>
+  </div>
+</div>
+
+<!-- SUMMARY STRIP -->
+<div class="summary-strip" id="summaryStrip"></div>
+<div class="refresh-note" id="refreshNote">⏱ <span id="lastUpdate">กำลังโหลด…</span></div>
+
+<!-- TRIP LIST -->
+<div class="trip-list" id="tripList"></div>
+
+<div id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const API = "https://script.google.com/macros/s/AKfycbxoVbfJ6ydOwvSKJpKGAiYwrrDKVWwSrYysd-cDLt2jUwJ3Hx9ecCJw0i2XRH7R386h/exec";
+const TODAY = new Date();
+const TODAY_STR = `${TODAY.getDate()} ${["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][TODAY.getMonth()]} ${TODAY.getFullYear()+543}`;
+const AUTO_REFRESH_SEC = 30;
+
+// ── STEP CONFIG ───────────────────────────────────────────────────
+// Steps visible to sales = simplified 6-node view
+// (hides internal plant steps, shows journey milestones)
+function buildStepConfig(stops) {
+  const base = [
+    {key:"plant",  lbl:"รับสินค้า"},
+    {key:"depart", lbl:"ออก HSL"},
+  ];
+  stops.forEach((s,i) => base.push({key:"stop_"+i, lbl:`จุด ${i+1}\n${s.short}`}));
+  base.push({key:"return", lbl:"กลับ HSL"});
+  return base;
+}
+
+// ── DEMO DATA (replace with API when ready) ───────────────────────
+const DEMO_TRIPS = [
+  {
+    trip_id:"HSL-20062569-7M831067-D1", round:1, dept_plan:"08:00",
+    plate:"7M83-1067", driver:"พงษ์พิพัฒน์", phone:"081-234-5678",
+    status:"active", current_step:3,
+    t_depart:"08:14", last_event_time:"12:05",
+    avg_service_min:35, avg_travel_min:90,
+    fill_rate:"85-90%",
+    kpi:{wait:8, load:29, wait_bill:14, travel:null},
+    stops:[
+      {code:"A030",name:"โคโยสเตียริ่ง", short:"โคโย",
+       status:"done", arrive:"10:42", finish:"11:18", service_min:36},
+      {code:"A031",name:"โคโยแมน", short:"โคโยแมน",
+       status:"active", arrive:"12:05", finish:null, service_min:null},
+      {code:"B014",name:"บางกอกสปริง", short:"บ.สปริง",
+       status:"pending", arrive:null, finish:null, service_min:null},
+    ]
+  },
+  {
+    trip_id:"HSL-20062569-7M832038-D2", round:1, dept_plan:"08:00",
+    plate:"7M83-2038", driver:"วัชรพล", phone:"082-345-6789",
+    status:"done", current_step:99,
+    t_depart:"08:05", last_event_time:"14:55",
+    avg_service_min:40, avg_travel_min:75,
+    fill_rate:"75%",
+    kpi:{wait:5, load:24, wait_bill:11, travel:68},
+    stops:[
+      {code:"C001",name:"SCG Packaging", short:"SCG",
+       status:"done", arrive:"09:38", finish:"10:22", service_min:44},
+      {code:"C002",name:"TPI Polene PCL", short:"TPI",
+       status:"done", arrive:"11:50", finish:"12:35", service_min:45},
+    ]
+  },
+  {
+    trip_id:"HSL-20062569-PKP758-D1", round:2, dept_plan:"13:00",
+    plate:"พ ฒง-758", driver:"วันชัย", phone:"083-456-7890",
+    status:"waiting", current_step:0,
+    t_depart:null, last_event_time:null,
+    avg_service_min:30, avg_travel_min:60,
+    fill_rate:null,
+    kpi:{wait:null, load:null, wait_bill:null, travel:null},
+    stops:[
+      {code:"D011",name:"Rayong Paper Co.", short:"Rayong",
+       status:"pending", arrive:null, finish:null, service_min:null},
+      {code:"D022",name:"Eastern Pack", short:"E.Pack",
+       status:"pending", arrive:null, finish:null, service_min:null},
+    ]
+  },
+  {
+    trip_id:"HSL-20062569-7M833620-D1", round:1, dept_plan:"07:30",
+    plate:"7M83-3620", driver:"ทวีศักดิ์", phone:"084-567-8901",
+    status:"active", current_step:2,
+    t_depart:"07:45", last_event_time:"10:15",
+    avg_service_min:38, avg_travel_min:85,
+    fill_rate:"50%",
+    kpi:{wait:12, load:31, wait_bill:18, travel:null},
+    stops:[
+      {code:"E005",name:"สยามซีเมนต์", short:"สยามซีเมนต์",
+       status:"active", arrive:"10:15", finish:null, service_min:null},
+      {code:"E009",name:"Bangpakong Mill", short:"B.Mill",
+       status:"pending", arrive:null, finish:null, service_min:null},
+    ]
+  },
+];
+
+let ALL_TRIPS = [...DEMO_TRIPS];
+let expanded = {};
+
+// ── PER-STOP ETA ─────────────────────────────────────────────────
+function calcStopETAs(trip) {
+  // Returns array of {eta_time, is_est} per stop index
+  const results = [];
+  let runningMin = null;
+
+  // seed from last known event or depart time
+  if (trip.t_depart) {
+    const [h,m] = trip.t_depart.split(":").map(Number);
+    runningMin = h*60 + m;
+  } else if (trip.dept_plan) {
+    const [h,m] = trip.dept_plan.split(":").map(Number);
+    runningMin = h*60 + m;
+  }
+
+  for (let i = 0; i < trip.stops.length; i++) {
+    const s = trip.stops[i];
+    if (s.status === "done") {
+      // actual time known
+      const [ah, am] = s.arrive.split(":").map(Number);
+      results.push({eta_time: s.arrive, is_est: false});
+      // next stop seeds from finish time
+      if (s.finish) {
+        const [fh, fm] = s.finish.split(":").map(Number);
+        runningMin = fh*60 + fm;
+      } else {
+        runningMin = ah*60 + am + trip.avg_service_min;
+      }
+    } else if (s.status === "active") {
+      // arrive known, finish estimated
+      const [ah, am] = s.arrive.split(":").map(Number);
+      results.push({eta_time: s.arrive, is_est: false});
+      runningMin = ah*60 + am + trip.avg_service_min;
+    } else {
+      // pending — estimate
+      if (runningMin !== null) {
+        runningMin += trip.avg_travel_min;
+        results.push({eta_time: minToTime(runningMin), is_est: true});
+        runningMin += trip.avg_service_min;
+      } else {
+        results.push({eta_time: null, is_est: true});
+      }
+    }
+  }
+  return results;
+}
+
+// ── ETA CALCULATION ───────────────────────────────────────────────
+function calcETA(trip) {
+  if (trip.status === "done") return null;
+  if (trip.status === "waiting") {
+    const [h,m] = trip.dept_plan.split(":").map(Number);
+    const base = h*60 + m;
+    const eta = base + trip.avg_travel_min + trip.avg_service_min * trip.stops.length;
+    return {time: minToTime(eta), note: "คาดจากเวลาออก + เฉลี่ย"};
+  }
+  const activeStop = trip.stops.find(s => s.status === "active");
+  const pendingStops = trip.stops.filter(s => s.status === "pending");
+  if (!trip.last_event_time) return null;
+  const [h,m] = trip.last_event_time.split(":").map(Number);
+  let etaMin = h*60 + m;
+  if (activeStop) {
+    etaMin += trip.avg_service_min;
+    pendingStops.forEach(() => { etaMin += trip.avg_travel_min + trip.avg_service_min; });
+  } else {
+    pendingStops.forEach((_, i) => { etaMin += trip.avg_travel_min + trip.avg_service_min; });
+  }
+  return {time: minToTime(etaMin), note: `Svc ~${trip.avg_service_min} + Travel ~${trip.avg_travel_min} นาที/จุด`};
+}
+
+function minToTime(m) {
+  const h = Math.floor(m/60) % 24;
+  const mm = Math.round(m % 60);
+  return `${String(h).padStart(2,"0")}:${String(mm).padStart(2,"0")}`;
+}
+
+// ── STEP PROGRESS ─────────────────────────────────────────────────
+function getStepIndex(trip) {
+  if (trip.status === "done") return 999;
+  if (trip.status === "waiting") return 0;
+  const doneStops = trip.stops.filter(s => s.status === "done").length;
+  const hasActive = trip.stops.some(s => s.status === "active");
+  // 0=waiting, 1=plant, 2=depart, 3+=stops, last=return
+  if (trip.status === "active") {
+    if (doneStops === 0 && !hasActive) return 1; // still at plant
+    return 2 + doneStops + (hasActive ? 0 : 0);
+  }
+  return 1;
+}
+
+function progPct(trip) {
+  if (trip.status === "done") return 100;
+  if (trip.status === "waiting") return 0;
+  const total = trip.stops.length + 2; // plant + stops + return
+  const done = trip.stops.filter(s => s.status === "done").length;
+  const hasActive = trip.stops.some(s => s.status === "active");
+  const cur = 1 + done + (hasActive ? 0.5 : 0);
+  return Math.round((cur / total) * 100);
+}
+
+function progColor(pct) {
+  if (pct >= 100) return "#3B6D11";
+  if (pct >= 60)  return "#C8962A";
+  if (pct >= 20)  return "#0C447C";
+  return "#B4B2A9";
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function renderSummary(trips) {
+  const total = ALL_TRIPS.length;
+  const active = ALL_TRIPS.filter(t => t.status === "active").length;
+  const done   = ALL_TRIPS.filter(t => t.status === "done").length;
+  const stops  = ALL_TRIPS.reduce((a,t) => a + t.stops.length, 0);
+  const doneSt = ALL_TRIPS.reduce((a,t) => a + t.stops.filter(s=>s.status==="done").length, 0);
+  document.getElementById("summaryStrip").innerHTML = `
+    <div class="stat-pill"><span class="val">${total}</span><span class="lbl">รอบส่งวันนี้</span></div>
+    <div class="stat-pill"><span class="val" style="color:#0C447C">${active}</span><span class="lbl">กำลังวิ่ง</span></div>
+    <div class="stat-pill"><span class="val" style="color:#27500A">${done}</span><span class="lbl">เสร็จแล้ว</span></div>
+    <div class="stat-pill"><span class="val">${doneSt}/${stops}</span><span class="lbl">จุดส่งสำเร็จ</span></div>
+  `;
+}
+
+function renderTrip(trip) {
+  const pct = progPct(trip);
+  const pc = progColor(pct);
+  const eta = calcETA(trip);
+  const stepCfg = buildStepConfig(trip.stops);
+  const curStep = trip.status === "done" ? 999 :
+                  trip.status === "waiting" ? -1 :
+                  (1 + trip.stops.filter(s=>s.status==="done").length +
+                   (trip.stops.some(s=>s.status==="active") ? 0 : 0));
+  const isExp = expanded[trip.trip_id];
+  const doneN = trip.stops.filter(s=>s.status==="done").length;
+
+  // Status pill
+  const spMap = {
+    active: ['sp-active','กำลังวิ่ง'],
+    done:   ['sp-done','ส่งสำเร็จ ✓'],
+    waiting:['sp-wait','รอออก']
+  };
+  const [spCls, spTxt] = spMap[trip.status] || ['sp-wait','—'];
+
+  // Stepper
+  const stepNodes = stepCfg.map((s, i) => {
+    let nodeClass, lineClass;
+    const isDone = trip.status === "done" ||
+                   (i === 0 && (trip.status === "active" || trip.status === "done")) ||
+                   (i >= 1 && i <= doneN && trip.status === "active") ||
+                   (trip.status === "done");
+    const isActive = !isDone && trip.status === "active" &&
+                     ((i === 1 && doneN === 0 && !trip.stops.some(s=>s.status==="active")) ||
+                      (i === doneN+1 && trip.stops.some(s=>s.status==="active")) ||
+                      (i === doneN+1 && trip.stops.every(s=>s.status==="done")));
+
+    if (trip.status === "done") { nodeClass = "sn-done"; }
+    else if (i === 0 && trip.status !== "waiting") { nodeClass = "sn-done"; }
+    else if (trip.status === "waiting") { nodeClass = i === 0 ? "sn-next" : "sn-pending"; }
+    else {
+      const doneBoundary = doneN + 2; // 0=plant(done), 1..N=stops, N+1=return
+      if (i < doneBoundary - trip.stops.filter(s=>s.status!=="done").length) {
+        // simplify: check each stop
+        if (i === 0) nodeClass = "sn-done";
+        else if (i <= doneN) nodeClass = "sn-done";
+        else if (i === doneN+1 && trip.stops.some(s=>s.status==="active")) nodeClass = "sn-active";
+        else if (i === doneN+1 && trip.stops.every(s=>s.status!=="pending"||s.status==="done")) nodeClass = "sn-active";
+        else nodeClass = "sn-pending";
+      } else { nodeClass = "sn-pending"; }
+      // re-simplify for correctness
+      if (i === 0) nodeClass = trip.status !== "waiting" ? "sn-done" : "sn-next";
+      else if (i <= doneN) nodeClass = "sn-done";
+      else if (i === doneN+1 && (trip.stops[doneN]?.status === "active")) nodeClass = "sn-active";
+      else if (i === stepCfg.length-1 && trip.status === "done") nodeClass = "sn-done";
+      else nodeClass = "sn-pending";
+    }
+    if (trip.status === "done") nodeClass = "sn-done";
+
+    if (i === 0) lineClass = "";
+    else if (trip.status === "done") lineClass = "sl-done";
+    else if (i <= doneN) lineClass = "sl-done";
+    else if (i === doneN+1 && trip.stops.some(s=>s.status==="active")) lineClass = "sl-active";
+    else lineClass = "sl-pending";
+
+    const lbl = s.lbl.replace("\n","<br>");
+    const lblClass = trip.status==="done" ? "done" :
+                     nodeClass==="sn-active" ? "active" :
+                     nodeClass==="sn-done" ? "done" : "";
+    const icon = nodeClass==="sn-done" ? "✓" : i+1;
+    const lineHtml = i > 0 ? `<div class="step-line ${lineClass}"></div>` : "";
+    return {lineHtml, node:`<div class="step-node ${nodeClass}">${icon}</div>`, lbl, lblClass};
+  });
+
+  let stepperHtml = '<div class="stepper">';
+  stepNodes.forEach(n => { stepperHtml += n.lineHtml + n.node; });
+  stepperHtml += '</div><div class="step-labels">';
+  stepNodes.forEach((n,i) => {
+    if (i > 0) stepperHtml += '<div class="step-spacer"></div>';
+    stepperHtml += `<div class="step-lbl ${n.lblClass}" style="width:26px">${n.lbl}</div>`;
+  });
+  stepperHtml += '</div>';
+
+  // Stepper ETA row — one chip per stop aligned under each node
+  const stopETAsForRow = calcStopETAs(trip);
+  // Build chips: blank for "รับสินค้า" and "ออก HSL" nodes, then one per stop, blank for "กลับ HSL"
+  const etaRowChips = [null, null, ...trip.stops.map((s,i) => ({s, eta: stopETAsForRow[i]})), null];
+  let etaRowHtml = '<div class="stepper-eta-row">';
+  etaRowChips.forEach((item, i) => {
+    if (i > 0) etaRowHtml += '<div class="eta-chip-spacer"></div>';
+    if (!item) {
+      etaRowHtml += '<div class="eta-chip"></div>';
+    } else {
+      const {s, eta} = item;
+      let val, cls, lbl;
+      if (s.status === "done") {
+        val = s.arrive; cls = "done"; lbl = "ถึง";
+      } else if (s.status === "active") {
+        // estimate finish
+        const [ah,am] = s.arrive.split(":").map(Number);
+        val = minToTime(ah*60+am+trip.avg_service_min); cls = "active"; lbl = "คาดเสร็จ";
+      } else {
+        val = eta?.eta_time ?? "—"; cls = ""; lbl = "คาดถึง";
+      }
+      etaRowHtml += `<div class="eta-chip">
+        <div class="eta-chip-val ${cls}">${val}</div>
+        <div class="eta-chip-lbl">${lbl}</div>
+      </div>`;
+    }
+  });
+  etaRowHtml += '</div>';
+
+  // Driver info bar
+  const drvBar = `
+    <div class="drv-bar">
+      <div class="drv-chip">🚛 <b>${trip.plate}</b></div>
+      <div class="drv-sep"></div>
+      <div class="drv-chip">👤 <b>${trip.driver}</b></div>
+      <div class="drv-sep"></div>
+      <div class="drv-chip">📞 <a href="tel:${trip.phone}">${trip.phone}</a></div>
+      ${trip.fill_rate ? `<div class="drv-sep"></div><div class="drv-chip">📦 Fill <b>${trip.fill_rate}</b></div>` : ""}
+    </div>`;
+
+  // ETA section (last stop summary)
+  const etaHtml = eta ? `
+    <div class="eta-box">
+      <div><div class="eta-lbl">ETA จุดสุดท้าย (คาด)</div><div class="eta-note">${eta.note}</div></div>
+      <div class="eta-val">⏱ ${eta.time} น.</div>
+    </div>` : "";
+
+  // KPI mini row
+  const k = trip.kpi;
+  const kpiHtml = (k.wait !== null) ? `
+    <div class="kpi-mini">
+      <div class="km-box"><div class="km-val">${k.wait ?? "—"}</div><div class="km-lbl">รอโหลด (นาที)</div></div>
+      <div class="km-box"><div class="km-val">${k.load ?? "—"}</div><div class="km-lbl">เวลาโหลด</div></div>
+      <div class="km-box"><div class="km-val">${k.wait_bill ?? "—"}</div><div class="km-lbl">รอ Bill</div></div>
+      <div class="km-box"><div class="km-val">${k.travel ?? "—"}</div><div class="km-lbl">เดินทาง</div></div>
+    </div>` : "";
+
+  // Per-stop ETAs
+  const stopETAs = calcStopETAs(trip);
+
+  // Stop rows
+  const stopRowsHtml = trip.stops.map((s, idx) => {
+    const dotColor = s.status==="done" ? "#27500A" : s.status==="active" ? "#C8962A" : "#B4B2A9";
+    const lineColor = s.status==="done" ? "#27500A" : "#E2E6EC";
+    const badge = s.status==="done" ? `<span class="stop-badge sb-done">ส่งแล้ว ✓</span>` :
+                  s.status==="active" ? `<span class="stop-badge sb-active">กำลังส่ง</span>` :
+                  `<span class="stop-badge sb-pending">รอ</span>`;
+
+    const etaInfo = stopETAs[idx];
+    let timeBlock = "";
+    if (s.status === "done") {
+      timeBlock = `<div class="stop-time-row">
+        <span class="stop-time">ถึง ${s.arrive} น. · เสร็จ ${s.finish} น.</span>
+        <span style="font-size:11px;color:var(--txt3)">ใช้เวลา ${s.service_min} นาที</span>
+      </div>`;
+    } else if (s.status === "active") {
+      const etaFinish = etaInfo ? minToTime(
+        (()=>{const[h,m]=s.arrive.split(":").map(Number);return h*60+m+trip.avg_service_min;})()
+      ) : "—";
+      timeBlock = `<div class="stop-time-row">
+        <span class="stop-time">ถึง ${s.arrive} น. · กำลังลงสินค้า…</span>
+      </div>
+      <span class="stop-eta">⏱ คาดเสร็จ ${etaFinish} น.</span>`;
+    } else {
+      // pending — show estimated arrival
+      const e = stopETAs[idx];
+      const etaStr = e?.eta_time ?? "—";
+      timeBlock = `<div class="stop-time-row"><span class="stop-time">รอรับสินค้า</span></div>
+      ${e?.eta_time ? `<span class="stop-eta">⏱ คาดถึง ${etaStr} น. (ประมาณ)</span>` : ""}`;
+    }
+
+    const isLast = idx === trip.stops.length - 1;
+    return `<div class="stop-row">
+      <div class="stop-dot-col">
+        <div class="stop-dot" style="background:${dotColor}"></div>
+        ${!isLast ? `<div class="stop-vline" style="background:${lineColor}"></div>` : ""}
+      </div>
+      <div class="stop-body">
+        <div class="stop-name">จุด ${idx+1} · ${s.name}</div>
+        <div class="stop-code">${s.code}</div>
+        ${timeBlock}
+        ${badge}
+      </div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="trip-card" id="card-${trip.trip_id}">
+    <div class="trip-card-head" onclick="toggleExpand('${trip.trip_id}')">
+      <div class="thd-left">
+        <div class="round">รอบที่ ${trip.round} <span style="font-size:12px;font-weight:400;opacity:.5">· ออก ${trip.t_depart || trip.dept_plan} น. · ${doneN}/${trip.stops.length} จุด</span></div>
+        <div class="meta">${trip.trip_id}</div>
+      </div>
+      <div class="thd-right">
+        <span class="status-pill ${spCls}">${spTxt}</span>
+        <span class="pct-label" style="color:${pc}">${pct}%</span>
+        <span class="chevron ${isExp ? 'open' : ''}" id="chev-${trip.trip_id}">▾</span>
+      </div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${pc}"></div></div>
+    </div>
+    <div class="stepper-wrap">
+      ${stepperHtml}
+    </div>
+    <div style="background:var(--navy)">${etaRowHtml}</div>
+    ${drvBar}
+    <div class="collapsible" id="col-${trip.trip_id}" style="max-height:${isExp ? '800px' : '0'}">
+      ${etaHtml}
+      ${kpiHtml}
+      <div class="stops-wrap">${stopRowsHtml}</div>
+    </div>
+  </div>`;
+}
+
+function filterAndRender() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  const round = document.getElementById("roundSel").value;
+  let trips = ALL_TRIPS;
+  if (q) trips = trips.filter(t =>
+    t.stops.some(s => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))
+  );
+  if (round) trips = trips.filter(t => String(t.round) === round);
+  renderSummary(trips);
+  const listEl = document.getElementById("tripList");
+  if (!trips.length) {
+    listEl.innerHTML = `<div class="empty">
+      <span class="empty-ico">🔍</span>
+      <div class="empty-title">ไม่พบลูกค้าที่ตรงกัน</div>
+      <div class="empty-sub">ลองพิมพ์ชื่อหรือ Customer Code ใหม่อีกครั้ง</div>
+    </div>`;
+    return;
+  }
+  listEl.innerHTML = trips.map(renderTrip).join("");
+}
+
+function toggleExpand(id) {
+  expanded[id] = !expanded[id];
+  const col = document.getElementById("col-"+id);
+  const chev = document.getElementById("chev-"+id);
+  col.style.maxHeight = expanded[id] ? "800px" : "0";
+  chev.classList.toggle("open", expanded[id]);
+}
+
+// ── API / REFRESH ─────────────────────────────────────────────────
+async function fetchTrips() {
+  try {
+    const res = await fetch(API + "?action=getTrips&date=" + encodeURIComponent(TODAY_STR), {
+      mode:"cors", signal: AbortSignal.timeout(6000)
+    });
+    const data = await res.json();
+    if (data.status === "ok" && data.trips?.length) {
+      ALL_TRIPS = data.trips;
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function doRefresh() {
+  const btn = document.getElementById("refreshBtn");
+  btn.classList.add("spinning");
+  btn.disabled = true;
+  const ok = await fetchTrips();
+  filterAndRender();
+  const now = new Date().toLocaleTimeString("th-TH", {hour:"2-digit",minute:"2-digit"});
+  document.getElementById("lastUpdate").textContent =
+    `${ok ? "อัปเดตแล้ว" : "Demo · API offline"} · ${now} น. · รีเฟรชทุก ${AUTO_REFRESH_SEC} วิ`;
+  btn.classList.remove("spinning");
+  btn.disabled = false;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+let _tt;
+function toast(msg){clearTimeout(_tt);const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");_tt=setTimeout(()=>t.classList.remove("show"),3000);}
+
+// ── INIT ──────────────────────────────────────────────────────────
+(async () => {
+  filterAndRender();
+  // expand first card by default
+  if (ALL_TRIPS.length) {
+    expanded[ALL_TRIPS[0].trip_id] = true;
+    filterAndRender();
+  }
+  await doRefresh();
+  setInterval(doRefresh, AUTO_REFRESH_SEC * 1000);
+})();
+</script>
+</body>
+</html>
