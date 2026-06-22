@@ -693,7 +693,7 @@ function confirmBill() { tripState.phase = "dispatched"; renderFlow(); toast("ðŸ
 async function sendEmail(action, payload) {
   try {
     await fetch(API, {
-      method:"POST", headers:{"Content-Type":"application/json"},
+      method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({action, data: payload})
     });
   } catch(e) {}
