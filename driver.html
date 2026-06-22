@@ -517,15 +517,15 @@ function renderFlow() {
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
         <div style="background:var(--surf);border-radius:8px;padding:8px;text-align:center;">
           <div style="font-size:10px;color:var(--txt3);margin-bottom:3px;">ถึงแล้ว</div>
-          <input type="time" class="tt-time-inp" id="arrive${i}" value="${ds.arriveTime}" onchange="confirmEmailSend(${i},'arrive',this.value,'📍 ถึงลูกค้า','${curDrv.drops[i]?.nick||\"ลูกค้า\"}')">
+          <input type="time" class="tt-time-inp" id="arrive${i}" value="${ds.arriveTime}" onchange="confirmEmailSend(${i},'arrive',this.value)">
         </div>
         <div style="background:var(--surf);border-radius:8px;padding:8px;text-align:center;">
           <div style="font-size:10px;color:var(--txt3);margin-bottom:3px;">เริ่มลงสินค้า</div>
-          <input type="time" class="tt-time-inp" id="unload${i}" value="${ds.unloadStartTime}" onchange="confirmEmailSend(${i},'unload',this.value,'🔄 เริ่มลงสินค้า','${curDrv.drops[i]?.nick||\"ลูกค้า\"}')">
+          <input type="time" class="tt-time-inp" id="unload${i}" value="${ds.unloadStartTime}" onchange="confirmEmailSend(${i},'unload',this.value)">
         </div>
         <div style="background:var(--surf);border-radius:8px;padding:8px;text-align:center;">
           <div style="font-size:10px;color:var(--txt3);margin-bottom:3px;">ลงเสร็จ</div>
-          <input type="time" class="tt-time-inp" id="done${i}" value="${ds.doneTime}" onchange="confirmEmailSend(${i},'done',this.value,'✅ ลงสินค้าเสร็จ','${curDrv.drops[i]?.nick||\"ลูกค้า\"}')">
+          <input type="time" class="tt-time-inp" id="done${i}" value="${ds.doneTime}" onchange="confirmEmailSend(${i},'done',this.value)">
         </div>
       </div>
       <div class="ifot-title">📋 IFOT + ความพึงพอใจ</div>
@@ -690,11 +690,14 @@ function confirmLoad() {
 }
 function adjBill(d) { tripState.waitBill = Math.max(0,Math.min(60,tripState.waitBill+d)); renderFlow(); }
 function confirmBill() { tripState.phase = "dispatched"; renderFlow(); toast("🧾 รับ Bill รอ "+tripState.waitBill+" นาที"); }
-async function confirmEmailSend(i, type, val, label, customerName) {
+async function confirmEmailSend(i, type, val) {
   // บันทึกค่าเวลาก่อน
   if (type === "arrive")  tripState.drops[i].arriveTime      = val;
   if (type === "unload")  tripState.drops[i].unloadStartTime = val;
   if (type === "done")    tripState.drops[i].doneTime        = val;
+
+  const label        = type==="arrive" ? "📍 ถึงลูกค้า" : type==="unload" ? "🔄 เริ่มลงสินค้า" : "✅ ลงสินค้าเสร็จ";
+  const customerName = curDrv.drops[i]?.nick || "ลูกค้า";
 
   // แสดง Popup ยืนยัน
   const confirmed = await showConfirmModal(
@@ -754,7 +757,7 @@ function showConfirmModal(title, message) {
   });
 }
 
-
+async function sendEmail(action, payload) {
   try {
     await fetch(API, {
       method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"},
