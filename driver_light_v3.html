@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1E3A5F">
+<title>HSL Logistics</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:    #F8FAFC;
+  --bg2:   #EFF6FF;
+  --white: #FFFFFF;
+  --navy:  #1E3A5F;
+  --blue:  #2563EB;
+  --blue2: #DBEAFE;
+  --blue3: #93C5FD;
+  --grn:   #16A34A;
+  --grn2:  #DCFCE7;
+  --grn3:  #86EFAC;
+  --amber: #D97706;
+  --amb2:  #FEF3C7;
+  --red:   #DC2626;
+  --red2:  #FEE2E2;
+  --txt:   #1E293B;
+  --txt2:  #475569;
+  --txt3:  #94A3B8;
+  --bdr:   #E2E8F0;
+  --gold:  #F59E0B;
+}
+body{
+  font-family:'IBM Plex Sans Thai',sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  font-size:17px;
+  min-height:100vh;
+  padding-bottom:60px;
+}
+
+/* ── Header ─────────────────────────── */
+.hdr{
+  background:var(--navy);
+  padding:14px 16px 12px;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;}
+.hdr-logo{font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px;}
+.hdr-sub{font-size:11px;color:#93C5FD;margin-top:2px;}
+.hdr-driver{
+  background:var(--blue2);border-radius:20px;
+  padding:4px 12px;font-size:12px;color:var(--navy);font-weight:700;
+  display:none;
+}
+
+/* ── Selector ───────────────────────── */
+.sel-wrap{padding:20px 16px;}
+.sel-label{font-size:12px;color:var(--txt2);font-weight:600;margin-bottom:8px;letter-spacing:.5px;}
+.sel-box{
+  width:100%;padding:18px 20px;border-radius:14px;
+  border:2px solid var(--bdr);background:var(--white);
+  font-size:19px;color:var(--txt);font-family:inherit;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%2394A3B8' d='M5 7l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;
+}
+.sel-box:focus{outline:none;border-color:var(--blue);}
+.load-btn{
+  width:100%;padding:20px;border-radius:14px;border:none;
+  background:var(--blue);color:#fff;
+  font-size:20px;font-weight:800;font-family:inherit;
+  cursor:pointer;margin-top:10px;
+  box-shadow:0 4px 12px rgba(37,99,235,.3);
+  transition:transform .1s;
+}
+.load-btn:active{transform:scale(.97);}
+
+/* ── Driver Card ─────────────────────── */
+.drv-card{
+  margin:0 16px 16px;
+  background:var(--white);border-radius:16px;
+  border:1.5px solid var(--blue2);
+  padding:14px 16px;
+  box-shadow:0 2px 8px rgba(37,99,235,.08);
+  display:none;
+}
+.drv-name{font-size:28px;font-weight:800;color:var(--navy);}
+.drv-plate{font-size:16px;color:var(--txt2);margin-top:4px;}
+.drv-meta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.drv-tag{
+  background:var(--bg2);border-radius:20px;
+  padding:4px 12px;font-size:11px;color:var(--txt2);font-weight:600;
+}
+
+/* ── Step List ───────────────────────── */
+.steps{padding:0 16px;}
+.step-item{
+  background:var(--white);border-radius:14px;
+  border:1.5px solid var(--bdr);
+  margin-bottom:10px;overflow:hidden;
+  transition:border-color .2s;
+}
+.step-item.done{border-color:var(--grn3)!important;background:var(--grn2);}
+.step-item.active{border-color:var(--blue3)!important;background:var(--bg2);}
+.step-item.locked{opacity:.5;}
+
+.step-head{
+  display:flex;align-items:center;gap:14px;padding:18px 16px;
+}
+.step-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+  background:var(--bg);
+}
+.step-item.done .step-icon{background:var(--grn2);}
+.step-item.active .step-icon{background:var(--blue2);}
+.step-title{font-size:24px;font-weight:800;color:var(--txt);}
+.step-sub{font-size:15px;color:var(--txt3);margin-top:3px;}
+.step-badge{
+  margin-left:auto;font-size:13px;font-weight:700;
+  padding:6px 12px;border-radius:20px;
+}
+.badge-done{background:var(--grn2);color:var(--grn);}
+.badge-active{background:var(--blue2);color:var(--blue);}
+.badge-wait{background:var(--bg);color:var(--txt3);}
+
+/* ── Step Body ───────────────────────── */
+.step-body{padding:0 16px 20px;}
+
+/* Big Action Button */
+.action-btn{
+  width:100%;padding:22px;border-radius:16px;border:none;
+  font-size:22px;font-weight:800;font-family:inherit;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.12);
+  transition:transform .1s, box-shadow .1s;
+}
+.action-btn:active{transform:scale(.97);box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.btn-blue{background:var(--blue);color:#fff;box-shadow:0 4px 16px rgba(37,99,235,.3);}
+.btn-green{background:var(--grn);color:#fff;box-shadow:0 4px 16px rgba(22,163,74,.3);}
+.btn-navy{background:var(--navy);color:#fff;box-shadow:0 4px 16px rgba(30,58,95,.3);}
+.btn-amber{background:var(--amber);color:#fff;box-shadow:0 4px 16px rgba(217,119,6,.3);}
+.btn-red{background:var(--red);color:#fff;box-shadow:0 4px 16px rgba(220,38,38,.3);}
+
+/* Done display */
+.done-row{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:10px;
+  background:var(--white);margin-bottom:8px;
+  font-size:17px;color:var(--txt2);
+}
+.done-row .t{font-weight:700;color:var(--txt);font-size:26px;}
+
+/* Divider */
+.div-label{
+  font-size:11px;font-weight:700;color:var(--txt3);
+  letter-spacing:.5px;padding:8px 0 6px;
+}
+
+/* Star Rating */
+.star-row{display:flex;gap:6px;margin-top:4px;}
+.star-btn{
+  flex:1;padding:18px 4px;border-radius:14px;border:2px solid var(--bdr);
+  background:var(--white);font-size:20px;font-weight:700;
+  cursor:pointer;transition:all .15s;color:var(--txt2);text-align:center;
+  font-family:inherit;
+}
+.star-btn.on{border-color:var(--gold);background:var(--gold);color:#fff;transform:scale(1.06);}
+
+/* Yes/No */
+.yn-row{display:flex;gap:8px;margin-bottom:8px;}
+.yn-label{font-size:13px;color:var(--txt2);margin-bottom:5px;}
+.yn-btn{
+  flex:1;padding:18px;border-radius:14px;border:2px solid var(--bdr);
+  background:var(--white);font-size:20px;cursor:pointer;
+  font-family:inherit;transition:all .15s;font-weight:700;
+}
+.yn-btn.y-on{border-color:var(--grn);background:var(--grn2);color:var(--grn);}
+.yn-btn.n-on{border-color:var(--red);background:var(--red2);color:var(--red);}
+
+/* GPS stamp result */
+.gps-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;color:var(--txt3);
+  background:var(--bg);border-radius:20px;padding:3px 8px;margin-top:4px;
+}
+
+/* Note input */
+.note-inp{
+  width:100%;padding:16px 18px;border-radius:12px;
+  border:1.5px solid var(--bdr);background:var(--white);
+  font-size:18px;color:var(--txt);font-family:inherit;
+  resize:none;margin-top:8px;
+}
+.note-inp:focus{outline:none;border-color:var(--blue);}
+
+/* Drop card */
+.drop-card{
+  background:var(--white);border:1.5px solid var(--bdr);
+  border-radius:14px;padding:14px;margin-bottom:10px;
+}
+.drop-name{font-size:26px;font-weight:800;color:var(--navy);}
+.drop-zone{font-size:17px;color:var(--txt3);margin-top:6px;}
+.drop-cond{
+  font-size:15px;color:var(--amber);
+  background:var(--amb2);border-radius:8px;
+  padding:6px 10px;margin-top:8px;
+}
+.maps-link{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  color:var(--white);font-size:20px;font-weight:800;
+  text-decoration:none;margin-top:12px;
+  background:var(--blue);border-radius:14px;
+  padding:16px;width:100%;
+  box-shadow:0 4px 12px rgba(37,99,235,.3);
+}
+
+/* Time display */
+.time-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0;}
+.time-cell{
+  background:var(--bg);border-radius:10px;padding:10px;text-align:center;
+}
+.time-cell .lbl{font-size:15px;color:var(--txt3);margin-bottom:6px;}
+.time-cell .val{font-size:28px;font-weight:800;color:var(--navy);}
+.time-cell .locked{font-size:13px;color:var(--grn);margin-top:4px;}
+
+/* Completion card */
+.done-card{
+  margin:16px;background:var(--white);border-radius:20px;
+  border:2px solid var(--grn);padding:32px 20px;text-align:center;
+  box-shadow:0 4px 20px rgba(22,163,74,.15);
+}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--navy);color:#fff;padding:12px 20px;
+  border-radius:30px;font-size:13px;font-weight:600;
+  transition:transform .3s;z-index:999;white-space:nowrap;
+  max-width:90vw;box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:500;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  background:var(--white);border-radius:24px 24px 0 0;
+  padding:24px 20px 32px;width:100%;max-width:480px;
+  transform:translateY(100%);transition:transform .3s;
+}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-title{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:20px;}
+.modal-info{
+  background:var(--bg2);border-radius:12px;padding:14px;
+  margin-bottom:20px;
+}
+.modal-info .row{display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;}
+.modal-info .row .k{color:var(--txt3);}
+.modal-info .row .v{color:var(--txt);font-weight:700;}
+.modal-btns{display:flex;gap:10px;}
+.modal-cancel{
+  flex:1;padding:14px;border-radius:12px;
+  border:2px solid var(--bdr);background:var(--white);
+  font-size:14px;font-weight:700;color:var(--txt2);
+  cursor:pointer;font-family:inherit;
+}
+.modal-confirm{
+  flex:2;padding:14px;border-radius:12px;border:none;
+  background:var(--blue);color:#fff;
+  font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="hdr-logo">🚛 HSL Logistics</div>
+      <div class="hdr-sub" id="hdrSub">ระบบติดตามการจัดส่ง</div>
+    </div>
+    <div class="hdr-driver" id="hdrDriver"></div>
+  </div>
+</div>
+
+<!-- Driver Selector -->
+<div class="sel-wrap" id="selWrap">
+  <div class="sel-label">เลือกคนขับ / ทะเบียนรถ</div>
+  <select class="sel-box" id="driverSel">
+    <option value="">-- เลือกคนขับ --</option>
+  </select>
+  <button class="load-btn" onclick="loadDriver()">โหลดใบงาน ▶</button>
+</div>
+
+<!-- Driver Card -->
+<div class="drv-card" id="drvCard">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+    <div>
+      <div class="drv-name" id="dcName"></div>
+      <div class="drv-plate" id="dcPlate"></div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div id="dcDate" style="font-size:15px;font-weight:800;color:var(--navy);"></div>
+      <div id="dcRound" style="font-size:14px;font-weight:700;color:var(--blue);margin-top:2px;"></div>
+      <div id="dcJobNo" style="font-size:13px;font-weight:700;color:var(--txt2);margin-top:2px;"></div>
+    </div>
+  </div>
+  <div class="drv-meta" id="dcMeta"></div>
+  <button id="resetBtn" onclick="resetTrip()" style="display:none;margin-top:10px;width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--red);background:var(--red2);color:var(--red);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 เริ่มเที่ยวใหม่</button>
+</div>
+
+<!-- Trip Steps -->
+<div class="steps" id="tripFlow"></div>
+
+<!-- Completion -->
+<div id="doneWrap" style="display:none">
+  <div class="done-card">
+    <div style="font-size:56px;margin-bottom:12px;">🎉</div>
+    <div style="font-size:22px;font-weight:800;color:var(--grn);margin-bottom:6px;">ส่งสำเร็จแล้ว!</div>
+    <div style="font-size:14px;color:var(--txt2);" id="doneSummary"></div>
+    <div style="margin-top:16px;font-size:12px;color:var(--txt3);">📧 ส่งสรุป Trip ไปยังผู้จัดการแล้ว</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Email Confirm Modal -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">📧 ยืนยันการแจ้งฝ่ายขาย</div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-info" id="modalInfo"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal(false)">ยกเลิก</button>
+      <button class="modal-confirm" onclick="closeModal(true)">✅ แจ้งฝ่ายขาย</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const API = "https://script.google.com/macros/s/AKfycbzTq5iE-jPXnMRa6H1Bd4TLpOZrCa9TlSAQa2zDg_ZCL0-BAc0XAAUuaaCQaxl-1aQ/exec";
+const TODAY     = new Date();
+const TODAY_STR = `${TODAY.getDate()} ${["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][TODAY.getMonth()]} ${TODAY.getFullYear()+543}`;
+const DATE_CODE = `${String(TODAY.getDate()).padStart(2,'0')}${String(TODAY.getMonth()+1).padStart(2,'0')}${TODAY.getFullYear()+543}`;
+
+const DRIVERS = [
+  {id:"DRV001",nick:"ฉัตรชัย",name:"ฉัตรชัย/เชิดศักดิ์",plate:"7M83-0650",type:"6W7M",phone:"081-234-5678",
+   drops:[
+     {nick:"แอดวิคเอเชีย",company:"แอดวิค เอเชีย",zone:"ปิ่นทอง",pos:["ADV-25-06-69-R1"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:"https://maps.app.goo.gl/ZoLAyrSNow4NtoBi9"},
+     {nick:"มอลเท็น",company:"มอลเท็น",zone:"ปิ่นทอง",pos:["MLT-25-06-69-R1"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:"https://maps.app.goo.gl/BvC5T2QAFgq8uqS99"}
+   ]},
+  {id:"DRV002",nick:"วัชรพล",name:"วัชรพล/บรรเจิด",plate:"7M83-2038",type:"6W7M",phone:"082-345-6789",
+   drops:[
+     {nick:"พีพีเรดดี้",company:"บริษัท พีพี เรดดี้ โ",zone:"พัทยา",pos:["PPR-25-06-69-R1"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:"https://maps.app.goo.gl/79aTXJ4uU61PGRjUA"}
+   ]},
+  {id:"DRV003",nick:"ทวีศักดิ์",name:"ทวีศักดิ์/พิพัฒน์พล",plate:"7M83-3620",type:"6W7M",phone:"083-456-7890",round:1,jobNo:"25062026.003",
+   drops:[
+     {nick:"โตโยโตมิ",company:"โตโยโตมิ รอบ 9.00 น.",zone:"บางวัว",pos:["TTM-25-06-69-R1"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:"https://maps.app.goo.gl/XtJoacojjDaQ8XB697g_st=al"},
+     {nick:"วูเทคบ้านโพธิ์",company:"วูเทค บ้านโพธิ์",zone:"บ้านโพธิ์",pos:["WTK-25-06-69-R2"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:"https://maps.app.goo.gl/3WdFpptubMCnQ1fd7"}
+   ]},
+  {id:"DRV004",nick:"พงษ์พิพัฒน์",name:"พงษ์พิพัฒน์/เสกสรร",plate:"7M83-1067",type:"6W7M",phone:"084-567-8901",drops:[]},
+  {id:"DRV005",nick:"วันชัย",name:"วันชัย",plate:"Pฒง758",type:"4WPK",phone:"085-678-9012",drops:[]},
+  {id:"DRV006",nick:"อิทธิพงษ์",name:"อิทธิพงษ์",plate:"Pฒง759",type:"4WPK",phone:"091-763-6424",drops:[]},
+  {id:"DRV007",nick:"อาทิตย์",name:"อาทิตย์",plate:"ฒห4128",type:"4WPK",phone:"085-737-2505",drops:[]},
+  {id:"DRV008",nick:"ธีรวัฒน์",name:"ธีรวัฒน์",plate:"ฒห4129",type:"4WPK",phone:"087-978-0512",drops:[]},
+  {id:"DRV009",nick:"ณัฐพงษ์",name:"ณัฐพงษ์",plate:"7M80-5101",type:"6W7M",phone:"093-112-8515",drops:[]},
+  {id:"DRV010",nick:"วัชรินทร์",name:"วัชรินทร์",plate:"70-5783",type:"6W7M",phone:"080-101-3552",drops:[]},
+  {id:"DRV011",nick:"ศักดิ์สิทธิ์",name:"ศักดิ์สิทธิ์",plate:"70-7914",type:"6W7M",phone:"092-428-8252",drops:[]},
+  {id:"DRV012",nick:"จุก",name:"ยิ่งศักดิ์",plate:"70-4390",type:"6W7M",phone:"094-986-4164",
+   drops:[
+     {nick:"เด็นโซ่ รอบเช้า",company:"A001-B รอบเช้า : บริษัท เด็นโซ่ (ประเทศไทย) จำกัด",zone:"",pos:["A001-B-240669"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:""},
+     {nick:"เด็นโซ่ FixPlan",company:"A001-B FixPlan : บริษัท เด็นโซ่ (ประเทศไทย) จำกัด",zone:"",pos:["A001-B-240669"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:""},
+     {nick:"เด็นโซ่ N",company:"A001-B N : บริษัท เด็นโซ่ (ประเทศไทย) จำกัด",zone:"",pos:["A001-B-240669"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:""},
+     {nick:"โตโยด้า โกเซ",company:"A019-TGT 3 นิกร : บริษัท โตโยด้า โกเซ (ประเทศไทย) จำกัด",zone:"",pos:["A019-TGT-240669"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:""}
+   ]},
+  {id:"DRV013",nick:"วุฒิ",name:"ยุทธศิลป์",plate:"72-1370",type:"6W7M",phone:"089-224-1156",drops:[]},
+  {id:"DRV014",nick:"หนูกร",name:"หนูกร",plate:"73-7293",type:"6W7M",phone:"085-281-5209",drops:[]},
+  {id:"DRV015",nick:"โอ๊ต",name:"นพเก้า",plate:"72-4313",type:"6W7M",phone:"084-004-1546",drops:[]},
+  {id:"DRV016",nick:"เบิ้ม",name:"อัครพล",plate:"72-1372",type:"4WPK",phone:"061-354-7534",drops:[]},
+  {id:"DRV017",nick:"ลิฟ",name:"กฤษดา",plate:"72-1905",type:"4WPK",phone:"093-570-9054",drops:[]},
+  {id:"DRV018",nick:"อาท",name:"วัฒนา",plate:"บษ-1110",type:"4WPK",phone:"095-030-0269",drops:[]},
+  {id:"DRV019",nick:"ส้ม",name:"จุฑาธิป",plate:"",type:"4WPK",phone:"061-154-1920",drops:[]},
+  {id:"DRV020",nick:"ปอนด์",name:"สุรศักดิ์",plate:"3ฒษ-220",type:"4WPK",phone:"082-376-4981",drops:[]},
+  {id:"DRV021",nick:"วี",name:"วีระพงษ์",plate:"72-8716",type:"6W7M",phone:"061-678-9682",drops:[]},
+  {id:"DRV022",nick:"กั๊ก",name:"ธนภัทร",plate:"74-1441",type:"6W7M",phone:"098-115-0796",drops:[]},
+  {id:"DRV023",nick:"ต๋อง",name:"ศักดิ์โกศล",plate:"71-1989",type:"6W7M",phone:"098-310-9572",drops:[]},
+  {id:"DRV024",nick:"ก๊อก",name:"ธวัช",plate:"72-0509",type:"6W7M",phone:"086-838-6646",drops:[]},
+  {id:"DRV025",nick:"เพชร",name:"เพชร",plate:"บร-5706",type:"4WPK",phone:"080-630-9757",drops:[]},
+  {id:"DRV026",nick:"เขียว",name:"สมนึก",plate:"บษ-3670",type:"4WPK",phone:"087-147-4156",drops:[]},
+  {id:"DRV027",nick:"ก้อย",name:"ชัชธนากฤษ",plate:"บพ-5969",type:"4WPK",phone:"092-812-9521",
+   drops:[
+     {nick:"โตไคริคะ",company:"โตไคริคะ",zone:"อมตะระยอง",pos:["TKR-25-06-69-R1"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:"https://maps.app.goo.gl/JRFQKiovQTN6fkGEA"},
+     {nick:"อาโอยาม่า",company:"อาโอยาม่า รอบ 10.30 น.",zone:"อมตะระยอง",pos:["AOY-25-06-69-R1"],qty:0,cond:"ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า",maps:"https://maps.app.goo.gl/wHEFhoHuXtcaJyA77"}
+   ]},
+  {id:"DRV028",nick:"แหลม",name:"สมประสงค์",plate:"บร-3699",type:"4WPK",phone:"098-274-3670",drops:[]},
+  {id:"DRV029",nick:"เอิร์ท",name:"อภิวัฒน์",plate:"70-5059",type:"6W7M",phone:"061-197-7548",drops:[]},
+  {id:"DRV030",nick:"มีน",name:"เอกภพ",plate:"700-4653",type:"6W7M",phone:"099-756-6718",drops:[]},
+  {id:"DRV031",nick:"มะ",name:"มะ",plate:"74-0130",type:"6W7M",phone:"082-963-3470",drops:[]},
+  {id:"DRV032",nick:"ชัย",name:"สุรชัย",plate:"70-2876",type:"6W7M",phone:"082-065-0458",drops:[]},
+  {id:"DRV033",nick:"สมพงษ์",name:"สมพงษ์",plate:"บห-9486",type:"4WPK",phone:"061-071-9530",drops:[]},
+  {id:"DRV034",nick:"โอ",name:"วันชัย",plate:"บห-9650",type:"4WPK",phone:"089-099-4846",drops:[]},
+  {id:"DRV035",nick:"เป็ด",name:"เสกสรร",plate:"บห-9857",type:"4WPK",phone:"088-527-9957",drops:[]},
+  {id:"DRV036",nick:"โจอี้",name:"อัษฎาวุธ",plate:"บน-7101",type:"4WPK",phone:"094-860-4328",drops:[]},
+  {id:"DRV037",nick:"บรูณ์",name:"สมบรูณ์",plate:"2ฒถ-9453",type:"4WPK",phone:"080-239-3169",drops:[]},
+  {id:"DRV038",nick:"เบ้น",name:"ธีรพงษ์",plate:"บห-7778",type:"4WPK",phone:"093-604-3824",drops:[]},
+  {id:"DRV039",nick:"ท็อป",name:"อนนท์",plate:"ผข-1137",type:"4WPK",phone:"063-913-2067",drops:[]},
+  {id:"DRV040",nick:"วิทย์",name:"เจนวิทย์",plate:"ผก-787",type:"4WPK",phone:"095-780-0860",drops:[]},
+  {id:"DRV041",nick:"เจมส์",name:"ณัฐพล",plate:"บร-1122",type:"4WPK",phone:"080-618-4573",drops:[]},
+  {id:"DRV042",nick:"อาวุธ",name:"อาวุธ",plate:"74-1654",type:"6W7M",phone:"080-383-5401",drops:[]},
+];
+
+let curDrv = null;
+let state  = {};
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function nowHHMM() {
+  const n = new Date();
+  return n.getHours().toString().padStart(2,'0') + ":" + n.getMinutes().toString().padStart(2,'0');
+}
+function toMin(t) { if (!t) return 0; const [h,m] = t.split(":").map(Number); return h*60+m; }
+function minToStr(m) { return Math.floor(m/60)+"ชม. "+m%60+"น."; }
+function tripId() { return "HSL-"+DATE_CODE+"-"+curDrv.plate.replace(/\s/g,""); }
+
+let _tt;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove("show"), 2800);
+}
+
+// GPS (silent background)
+async function getGPS() {
+  try {
+    const pos = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, {timeout:8000, enableHighAccuracy:true})
+    );
+    return pos.coords.latitude.toFixed(5) + ", " + pos.coords.longitude.toFixed(5);
+  } catch(e) { return "ไม่ได้รับ GPS"; }
+}
+
+// API call
+var TG_TOKEN    = "8914441698:AAFxBAP2mzmthy5aTFFJURrpsPhgbN42rc8";
+var TG_DELIVERY = "-5131015959";
+var TG_SALES    = "-5447894469";
+
+async function sendTelegram(msg) {
+  var url = "https://api.telegram.org/bot" + TG_TOKEN + "/sendMessage";
+  for (var i = 0; i < [TG_DELIVERY, TG_SALES].length; i++) {
+    var chatId = [TG_DELIVERY, TG_SALES][i];
+    fetch(url, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({chat_id: chatId, text: msg, parse_mode: "HTML"})
+    }).catch(function(){});
+  }
+}
+
+async function callAPI(action, data) {
+  try {
+    var nick  = curDrv ? curDrv.nick  : "";
+    var plate = curDrv ? curDrv.plate : "";
+    var stop  = data.customer || data.stop || "";
+    var jobNo = data.trip_id  || data.jobNo || tripId();
+    var ts    = data.arrive_time || data.depart_time || data.done_time || data.ts || "";
+    var idx   = (data.drop_index || 1) - 1;
+    var maps  = curDrv && curDrv.drops[idx] ? curDrv.drops[idx].maps||"" : "";
+
+    if (action === "emailArrive") {
+      var mapsLine = maps ? "\n<a href=\"" + maps + "\">ดูแผนที่</a>" : "";
+      var msg = "🚛 <b>ถึงแล้ว!</b>\n" +
+                "👤 " + nick + " | 🚛 " + plate + "\n" +
+                "📦 " + stop + "\n" +
+                "🕐 " + ts + "\n" +
+                "📋 " + jobNo + mapsLine;
+      sendTelegram(msg);
+    }
+
+    if (action === "emailDispatch") {
+      var dest = data.destinations || "";
+      var msg = "🚦 <b>รถออกแล้ว!</b>\n" +
+                "👤 " + nick + " | 🚛 " + plate + "\n" +
+                "🕐 ออก " + ts + " น.\n" +
+                "📋 " + jobNo + "\n" +
+                "🗺 " + dest;
+      sendTelegram(msg);
+    }
+
+    if (action === "emailLoaded") {
+      var msg = "📦 <b>โหลดสินค้าเสร็จแล้ว!</b>\n" +
+                "👤 " + nick + " | 🚛 " + plate + "\n" +
+                "🕐 " + ts + " น.\n" +
+                "📋 " + jobNo;
+      sendTelegram(msg);
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL (Email confirm)
+// ══════════════════════════════════════════════════════
+let _modalResolve = null;
+function showModal(title, sub, infoRows) {
+  return new Promise(res => {
+    _modalResolve = res;
+    document.getElementById("modalTitle").textContent = "📧 " + title;
+    document.getElementById("modalSub").textContent = sub;
+    const info = document.getElementById("modalInfo");
+    info.innerHTML = infoRows.map(r =>
+      `<div class="row"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`
+    ).join("");
+    document.getElementById("emailModal").classList.add("open");
+  });
+}
+function closeModal(confirmed) {
+  document.getElementById("emailModal").classList.remove("open");
+  if (_modalResolve) { _modalResolve(confirmed); _modalResolve = null; }
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+function initState(drv) {
+  return {
+    phase: "check",           // check → load → depart → drops → done
+    checkDone: false,
+    loadDone:  false,
+    departTime: "",
+    returnTime: "",
+    drops: drv.drops.map(() => ({
+      arriveTime:  "",
+      arriveGPS:   "",
+      doneTime:    "",
+      doneGPS:     "",
+      sat:         0,
+      note:        "",
+      saved:       false,
+    }))
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// LOAD DRIVER
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// LOCAL STORAGE — บันทึก/กู้ State อัตโนมัติ
+// ══════════════════════════════════════════════════════
+function resetTrip() {
+  if (!confirm("เริ่มเที่ยวใหม่? ข้อมูลเดิมจะถูกล้างครับ")) return;
+  clearState();
+  state = initState(curDrv);
+  document.getElementById("resetBtn").style.display = "none";
+  document.getElementById("doneWrap").style.display = "none";
+  toast("🔄 เริ่มเที่ยวใหม่แล้วครับ");
+  render();
+}
+
+function saveState() {
+  if (!curDrv) return;
+  const key = "hsl_trip_" + curDrv.id + "_" + DATE_CODE;
+  localStorage.setItem(key, JSON.stringify(state));
+  localStorage.setItem("hsl_last_driver", curDrv.id);
+  localStorage.setItem("hsl_last_date", DATE_CODE);
+}
+
+function loadSavedState(driverId) {
+  const key = "hsl_trip_" + driverId + "_" + DATE_CODE;
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    try { return JSON.parse(saved); } catch(e) {}
+  }
+  return null;
+}
+
+function clearState() {
+  if (!curDrv) return;
+  const key = "hsl_trip_" + curDrv.id + "_" + DATE_CODE;
+  localStorage.removeItem(key);
+}
+
+function loadDriver() {
+  const v = document.getElementById("driverSel").value;
+  if (!v) { toast("⚠️ เลือกคนขับก่อนครับ"); return; }
+  curDrv = DRIVERS.find(d => d.id === v);
+  if (!curDrv) return;
+
+  // ดึง drops จาก Sheet ก่อนเสมอ (ถ้าไม่มีค่อยใช้ hardcode)
+  toast("⏳ โหลดแผนวันนี้...");
+  fetch(API + "?action=getDrops&driver=" + v, {mode:"cors"})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.status === "ok" && data.drops && data.drops.length > 0) {
+        curDrv.drops = data.drops;
+        toast("✅ โหลดแผน " + data.drops.length + " จุดจาก Sheet");
+      } else if (data.status === "no_plan") {
+        toast("📋 ใช้แผน Hardcode (ยังไม่มีแผนใน Sheet วันนี้)");
+      }
+      _finishLoadDriver();
+    })
+    .catch(function(){
+      toast("📋 ใช้แผน Hardcode (เชื่อม Sheet ไม่ได้)");
+      _finishLoadDriver();
+    });
+}
+
+function _finishLoadDriver() {
+  // กู้ state จาก localStorage ถ้ามี
+  const saved = loadSavedState(curDrv.id);
+  if (saved && saved.phase !== "done") {
+    state = saved;
+    toast("📂 โหลดต่อจากที่ค้างไว้ครับ");
+    document.getElementById("resetBtn").style.display = "block";
+  } else {
+    state = initState(curDrv);
+    document.getElementById("resetBtn").style.display = "none";
+    clearState();
+  }
+
+  document.getElementById("selWrap").style.display = "none";
+  document.getElementById("drvCard").style.display = "block";
+  document.getElementById("dcName").textContent = curDrv.nick + " 👋";
+  document.getElementById("dcPlate").textContent = "🚛 " + curDrv.plate + " · " + curDrv.type;
+  document.getElementById("dcDate").textContent = "วันที่ " + TODAY_STR;
+  document.getElementById("dcRound").textContent = curDrv.round ? "รอบที่ " + curDrv.round : "รอบที่ 1";
+  document.getElementById("dcJobNo").textContent = "Job No. " + (curDrv.jobNo || tripId());
+  document.getElementById("dcMeta").innerHTML =
+    `<span class="drv-tag">📍 ${curDrv.drops.length} จุดส่ง</span>` +
+    `<span class="drv-tag">📞 ${curDrv.phone}</span>`;
+  document.getElementById("hdrDriver").style.display = "block";
+  document.getElementById("hdrDriver").textContent = curDrv.nick;
+  document.getElementById("hdrSub").textContent = tripId();
+
+  render();
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+function render() {
+  const flow = document.getElementById("tripFlow");
+  if (!curDrv) { flow.innerHTML = ""; return; }
+
+  const ph = state.phase;
+  let h = "";
+
+  // ── Step 1: เช็คสภาพรถ ──
+  const s1done = state.checkDone;
+  const s1act  = ph === "check";
+  h += stepWrap("🔧", "เช็คสภาพรถ", "ก่อนออกเดินทาง", s1done, s1act, !s1done && !s1act, s1done ? "" : s1act ? `
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:20px;">ตรวจสอบสภาพรถและเตรียมพร้อมก่อนออก</p>
+    <button class="action-btn btn-green" onclick="doCheckReady()">✅ พร้อมออกเดินทาง</button>
+    <button class="action-btn" style="margin-top:10px;background:var(--red2);color:var(--red);border:2px solid var(--red);box-shadow:none;" onclick="doCheckNotReady()">❌ ยังไม่พร้อม — แจ้ง Supervisor</button>
+  ` : "");
+
+  // ── Step 2: โหลดสินค้า ──
+  const s2done = state.loadDone;
+  const s2act  = ph === "load";
+  h += stepWrap("📦", "โหลดสินค้า", `${curDrv.drops.length} จุดส่งวันนี้`, s2done, s2act, !s2done && !s2act, s2done ? "" : s2act ? `
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px;">โหลดสินค้าขึ้นรถครบแล้ว กดยืนยันได้เลย</p>
+    <button class="action-btn btn-green" onclick="doLoad()">📦 โหลดสินค้าเสร็จแล้ว</button>
+  ` : "");
+
+  // ── Step 3: ออกเดินทาง ──
+  const s3done = !!state.departTime;
+  const s3act  = ph === "depart";
+  h += stepWrap("🚦", "ออกเดินทาง", s3done ? "ออก " + state.departTime + " น." : "แจ้งทีมขายอัตโนมัติ", s3done, s3act, !s3done && !s3act, s3done ? "" : s3act ? `
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px;">พร้อมออกจากโรงงานแล้วใช่ไหม?</p>
+    <button class="action-btn btn-blue" onclick="doDepart()">🚦 ออกเดินทางแล้ว!</button>
+  ` : "");
+
+  // ── Steps 4+: แต่ละจุดส่ง ──
+  curDrv.drops.forEach((d, i) => {
+    const ds   = state.drops[i];
+    const done = ds.saved;
+    const act  = ph === "drop_"+i;
+    const icon = done ? "✅" : act ? "📍" : "⬜";
+
+    let body = "";
+    if (done) {
+      body = `
+        <div class="done-row">🕐 ถึง <span class="t">${ds.arriveTime}</span></div>
+        <div class="done-row">✅ ส่งเสร็จ <span class="t">${ds.doneTime}</span> · ${ds.doneTime && ds.arriveTime ? (toMin(ds.doneTime)-toMin(ds.arriveTime)) : 0} นาที</div>
+        <div class="done-row">⭐ ความพึงพอใจ <span class="t">${"⭐".repeat(ds.sat)}</span></div>
+      `;
+    } else if (act) {
+      body = `
+        <div class="drop-card">
+          <div class="drop-name">${d.nick}</div>
+          <div class="drop-zone">📍 ${d.zone}</div>
+          ${d.cond ? `<div class="drop-cond">⚠️ ${d.cond}</div>` : ""}
+          <a class="maps-link" href="${d.maps}" target="_blank">🗺 นำทางไป${d.nick}</a>
+        </div>
+      `;
+
+      if (!ds.arriveTime) {
+        body += `<button class="action-btn btn-blue" onclick="stampArrive(${i})">📍 ถึงแล้ว!</button>`;
+      } else {
+        body += `
+          <div class="time-grid">
+            <div class="time-cell">
+              <div class="lbl">📍 ถึงแล้ว</div>
+              <div class="val">${ds.arriveTime}</div>
+              <div class="locked">✓ บันทึกแล้ว</div>
+            </div>
+            <div class="time-cell" style="${ds.doneTime ? "" : "border:2px dashed var(--blue);background:var(--bg2);"}">
+              <div class="lbl">✅ ส่งเสร็จ</div>
+              <div class="val">${ds.doneTime || "--:--"}</div>
+              ${ds.doneTime ? '<div class="locked">✓ บันทึกแล้ว</div>' : ""}
+            </div>
+            <div class="time-cell">
+              <div class="lbl">⏱ ระยะเวลา</div>
+              <div class="val">${ds.doneTime ? (toMin(ds.doneTime)-toMin(ds.arriveTime))+"น." : "---"}</div>
+            </div>
+          </div>
+        `;
+
+        if (!ds.doneTime) {
+          body += `<button class="action-btn btn-green" onclick="stampDone(${i})">✅ ส่งสินค้าเสร็จแล้ว</button>`;
+        } else {
+          body += `
+            <div class="div-label">ลูกค้าพอใจแค่ไหน?</div>
+            <div class="star-row">
+              ${[1,2,3,4,5].map(n =>
+                `<button class="star-btn${ds.sat===n?" on":""}" onclick="setSat(${i},${n})">${n}⭐</button>`
+              ).join("")}
+            </div>
+            <textarea class="note-inp" rows="2" placeholder="หมายเหตุ (ถ้ามี)..." oninput="state.drops[${i}].note=this.value">${ds.note}</textarea>
+            <button class="action-btn btn-navy" style="margin-top:12px;" onclick="saveDrop(${i})">✅ บันทึกจุดที่ ${i+1} เสร็จแล้ว</button>
+          `;
+        }
+      }
+    }
+
+    h += stepWrap(icon, d.nick, done ? "ส่งสำเร็จ ✅" : act ? d.zone : d.zone, done, act, !done && !act, body);
+  });
+
+  // ── Step สุดท้าย: กลับ HSL ──
+  const allDone = curDrv.drops.every((_,i) => state.drops[i].saved);
+  const retDone = !!state.returnTime;
+  const retAct  = ph === "return";
+  h += stepWrap("🏠", "กลับ HSL", retDone ? "กลับ " + state.returnTime + " น." : "รปภ. Scan เข้า", retDone, retAct, !retDone && !retAct, retDone ? "" : retAct ? `
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px;">กลับถึงโรงงาน HSL แล้วใช่ไหม?</p>
+    <button class="action-btn btn-red" onclick="doReturn()">🏠 กลับถึง HSL แล้ว</button>
+  ` : "");
+
+  flow.innerHTML = h;
+  document.getElementById("doneWrap").style.display = ph === "done" ? "block" : "none";
+
+  // restore YN states
+  if (ph === "check") {
+    ["c1","c2","c3"].forEach(k => {
+      if (state[k] === true)  { setYN(k, true,  false); }
+      if (state[k] === false) { setYN(k, false, false); }
+    });
+  }
+}
+
+function stepWrap(icon, title, sub, done, active, locked, body) {
+  const cls = done ? "done" : active ? "active" : locked ? "locked" : "";
+  const badge = done
+    ? `<span class="step-badge badge-done">✓ เสร็จ</span>`
+    : active
+    ? `<span class="step-badge badge-active">● ทำตอนนี้</span>`
+    : `<span class="step-badge badge-wait">รอก่อน</span>`;
+  return `
+    <div class="step-item ${cls}">
+      <div class="step-head">
+        <div class="step-icon">${icon}</div>
+        <div>
+          <div class="step-title">${title}</div>
+          <div class="step-sub">${sub}</div>
+        </div>
+        ${badge}
+      </div>
+      ${body ? `<div class="step-body">${body}</div>` : ""}
+    </div>
+  `;
+}
+
+function ynBtns(key) {
+  const v = state[key];
+  return `
+    <button class="yn-btn${v===true?" y-on":""}" onclick="setYN('${key}',true)">✅ ใช่</button>
+    <button class="yn-btn${v===false?" n-on":""}" onclick="setYN('${key}',false)">❌ ไม่ใช่</button>
+  `;
+}
+
+// ══════════════════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════════════════
+function setYN(key, val, rerender=true) {
+  state[key] = val;
+  if (rerender) render();
+}
+
+function setSat(i, n) {
+  state.drops[i].sat = n;
+  saveState(); render();
+}
+
+function doCheckReady() {
+  state.checkDone = true;
+  state.phase = curDrv.drops.length > 0 ? "load" : "depart";
+  saveState(); toast("✅ พร้อมออกเดินทาง!"); render();
+}
+
+function doCheckNotReady() {
+  toast("⚠️ แจ้ง Supervisor ก่อนออกรถนะครับ");
+}
+
+async function doLoad() {
+  state.loadDone = true;
+  state.loadTime = nowHHMM();
+  state.phase = "depart";
+  saveState(); toast("📦 โหลดสินค้าเสร็จแล้ว!"); render();
+  var nick  = curDrv ? curDrv.nick  : "";
+  var plate = curDrv ? curDrv.plate : "";
+  sendTelegram("📦 <b>โหลดสินค้าเสร็จแล้ว!</b>\n" +
+    "👤 " + nick + " | 🚛 " + plate + "\n" +
+    "🕐 " + state.loadTime + " น.\n" +
+    "📋 " + tripId());
+}
+
+async function doDepart() {
+  state.departTime = nowHHMM();
+  state.phase = curDrv.drops.length > 0 ? "drop_0" : "return";
+  saveState(); render();
+  toast("🚦 ออกเดินทาง " + state.departTime + " น.");
+  var nick = curDrv ? curDrv.nick : "";
+  var plate = curDrv ? curDrv.plate : "";
+  var dest = curDrv.drops.map(function(d,i){ return "จุดที่"+(i+1)+": "+d.nick; }).join(", ");
+  sendTelegram("🚦 <b>รถออกแล้ว!</b>\n" +
+    "👤 " + nick + " | 🚛 " + plate + "\n" +
+    "🕐 ออก " + state.departTime + " น.\n" +
+    "📋 " + tripId() + "\n" +
+    "🗺 " + dest);
+}
+
+async function stampArrive(i) {
+  const t   = nowHHMM();
+  const gps = await getGPS();  // silent background
+  state.drops[i].arriveTime = t;
+  state.drops[i].arriveGPS  = gps;
+  saveState(); render();
+  toast("📍 บันทึกเวลาถึง " + t + " น. · กำลังแจ้งฝ่ายขาย...");
+  var nick  = curDrv ? curDrv.nick  : "";
+  var plate = curDrv ? curDrv.plate : "";
+  var stop  = curDrv.drops[i] ? curDrv.drops[i].nick : "";
+  var maps  = curDrv.drops[i] ? curDrv.drops[i].maps || "" : "";
+  var mapsLine = maps ? "\n<a href=\"" + maps + "\">ดูแผนที่</a>" : "";
+  var jobNo = tripId() + "-D" + (i+1);
+  sendTelegram("🚛 <b>ถึงแล้ว!</b>\n" +
+    "👤 " + nick + " | 🚛 " + plate + "\n" +
+    "📦 " + stop + "\n" +
+    "🕐 " + t + "\n" +
+    "📋 " + jobNo + mapsLine);
+}
+
+async function stampDone(i) {
+  const t   = nowHHMM();
+  const gps = await getGPS();  // silent background
+  state.drops[i].doneTime = t;
+  state.drops[i].doneGPS  = gps;
+  saveState(); render();
+  toast("✅ บันทึกเวลาส่งเสร็จ " + t + " น.");
+}
+
+async function saveDrop(i) {
+  const ds = state.drops[i];
+  if (ds.sat === 0) { toast("⭐ เลือกระดับความพึงพอใจก่อนนะครับ"); return; }
+
+  const svcMin = Math.max(0, toMin(ds.doneTime) - toMin(ds.arriveTime));
+  ds.serviceMin = svcMin;
+  ds.note = document.querySelector(`textarea`) ? document.querySelector(`textarea`).value : ds.note;
+
+  const confirmed = await showModal(
+    "แจ้งฝ่ายขาย",
+    "ยืนยันส่งสินค้าเสร็จแล้ว จะแจ้งฝ่ายขายอัตโนมัติทันทีครับ",
+    [
+      ["📍 ลูกค้า", curDrv.drops[i].nick],
+      ["⏰ ถึง", ds.arriveTime + " น."],
+      ["✅ เสร็จ", ds.doneTime + " น."],
+      ["⏱ ระยะเวลา", svcMin + " นาที"],
+      ["⭐ พึงพอใจ", "⭐".repeat(ds.sat)]
+    ]
+  );
+
+  if (!confirmed) return;
+
+  ds.saved = true;
+  saveState();
+
+  // Send email to marketing
+  callAPI("emailDone", {
+    trip_id:     tripId() + "-D"+(i+1),
+    drop_index:  i+1,
+    total_drops: curDrv.drops.length,
+    plate:       curDrv.plate,
+    driver:      curDrv.name,
+    customer:    curDrv.drops[i].nick,
+    zone:        curDrv.drops[i].zone,
+    arrive_time: ds.arriveTime,
+    arrive_gps:  ds.arriveGPS,
+    done_time:   ds.doneTime,
+    done_gps:    ds.doneGPS,
+    service_min: svcMin,
+    q4_satisfy:  ds.sat + "/5",
+    note:        ds.note || "-",
+    email_group: "done"
+  });
+
+  // Advance phase
+  const nextDrop = curDrv.drops.findIndex((_,j) => j > i && !state.drops[j].saved);
+  state.phase = nextDrop >= 0 ? "drop_"+nextDrop : "return";
+
+  render();
+  toast("✅ ส่งสำเร็จ! แจ้งฝ่ายขายแล้ว");
+}
+
+async function doReturn() {
+  state.returnTime = nowHHMM();
+  state.phase = "done";
+  saveState();
+
+  // Calculate summary
+  const td  = curDrv.drops.length;
+  const sat = td ? (state.drops.reduce((s,d) => s+d.sat, 0) / td).toFixed(1) : "-";
+  const svc = state.drops.reduce((s,d) => s+(d.serviceMin||0), 0);
+
+  document.getElementById("doneSummary").innerHTML =
+    `${curDrv.nick} · ${curDrv.plate}<br>${td} จุดส่ง · Avg ⭐ ${sat} · Total ${svc} นาที`;
+
+  render();
+  toast("🏠 กลับถึง HSL " + state.returnTime + " น.");
+
+  // Send Trip Summary to Manager
+  const dropSummary = curDrv.drops.map((d,i) => {
+    const ds = state.drops[i];
+    return "จุดที่"+(i+1)+" "+d.nick+" ("+d.zone+")\n" +
+           "   ถึง: "+ds.arriveTime+" | เสร็จ: "+ds.doneTime+" | "+ds.serviceMin+" นาที\n" +
+           "   GPS: "+ds.arriveGPS+"\n" +
+           "   ⭐ "+ds.sat+"/5"+(ds.note?" | "+ds.note:"");
+  }).join("\n\n");
+
+  callAPI("emailTripSummary", {
+    email_group:   "return",
+    trip_id:       tripId(),
+    driver:        curDrv.name,
+    plate:         curDrv.plate,
+    dispatch_time: state.departTime,
+    return_time:   state.returnTime,
+    total_trip_min: Math.max(0, toMin(state.returnTime) - toMin(state.departTime)),
+    service_min:   svc,
+    travel_min:    Math.max(0, toMin(state.returnTime) - toMin(state.departTime) - svc),
+    fill_rate:     "-",
+    total_drops:   td,
+    on_time:       td+"/"+td,
+    case_fill:     td+"/"+td,
+    document:      td+"/"+td,
+    avg_sat:       sat,
+    ifot_score:    "100",
+    drop_summary:  dropSummary
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+(function() {
+  const sel = document.getElementById("driverSel");
+  DRIVERS.forEach(d => {
+    const opt = document.createElement("option");
+    opt.value = d.id;
+    opt.textContent = d.nick + " · " + d.plate + (d.drops.length ? " (" + d.drops.length + " จุด)" : " (ยังไม่มีงาน)");
+    sel.appendChild(opt);
+  });
+
+  // URL param auto-load + restore saved state
+  const p = new URLSearchParams(window.location.search);
+  const id = p.get("driver");
+  if (id) {
+    sel.value = id;
+    // เช็คว่ามี state ค้างวันนี้ไหม
+    const lastDate = localStorage.getItem("hsl_last_date");
+    if (lastDate === DATE_CODE) {
+      loadDriver(); // จะ restore state อัตโนมัติใน loadDriver
+    } else {
+      // วันใหม่ ล้าง state เก่าทิ้ง
+      localStorage.removeItem("hsl_trip_" + id + "_" + lastDate);
+      loadDriver();
+    }
+  }
+})();
+</script>
+</body>
+</html>
