@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSL Plan Builder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',Arial,sans-serif;background:#F1F5F9;color:#1E293B;font-size:15px}
+.header{background:#1A2B5E;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:20px;font-weight:700}
+.header span{font-size:13px;color:#93C5FD}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h2{font-size:16px;font-weight:700;color:#1A2B5E;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.step-badge{background:#2563EB;color:#fff;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.upload-zone{border:2px dashed #CBD5E1;border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:.2s;background:#F8FAFC}
+.upload-zone:hover{border-color:#2563EB;background:#EFF6FF}
+.upload-zone input{display:none}
+.upload-zone p{color:#64748B;margin-top:8px;font-size:14px}
+.upload-zone .icon{font-size:36px}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;transition:.15s}
+.btn-primary{background:#2563EB;color:#fff}.btn-primary:hover{background:#1D4ED8}
+.btn-success{background:#16A34A;color:#fff}.btn-success:hover{background:#15803D}
+.btn-orange{background:#EA580C;color:#fff}.btn-orange:hover{background:#C2410C}
+.btn-sm{padding:5px 12px;font-size:13px}
+.btn-ghost{background:#F1F5F9;color:#475569;border:1px solid #E2E8F0}.btn-ghost:hover{background:#E2E8F0}
+.btn-danger{background:#DC2626;color:#fff}.btn-danger:hover{background:#B91C1C}
+.info-bar{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;font-size:13px;color:#1D4ED8;margin-bottom:14px}
+.warn-bar{background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 14px;font-size:13px;color:#92400E;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:#F8FAFC;padding:9px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #E2E8F0;white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
+tr:hover td{background:#F8FAFC}
+select{width:100%;padding:6px 8px;border:1px solid #CBD5E1;border-radius:6px;font-size:13px;font-family:inherit;background:#fff;color:#1E293B}
+select:focus{outline:none;border-color:#2563EB;box-shadow:0 0 0 2px #BFDBFE}
+input[type=text]{width:100%;padding:6px 8px;border:1px solid #CBD5E1;border-radius:6px;font-size:13px;font-family:inherit}
+input[type=text]:focus{outline:none;border-color:#2563EB}
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600}
+.tag-hsl{background:#DBEAFE;color:#1D4ED8}
+.tag-tpt{background:#FEF3C7;color:#92400E}
+.tag-7m{background:#DCFCE7;color:#15803D}
+.tag-pk{background:#F3E8FF;color:#7C3AED}
+.tag-r1{background:#E0F2FE;color:#0369A1}
+.tag-r2{background:#FFF7ED;color:#C2410C}
+.output-box{background:#0F172A;color:#E2E8F0;border-radius:10px;padding:16px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:400px;overflow-y:auto;line-height:1.6}
+.copy-btn{position:relative}
+.copied{background:#16A34A!important}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.summary-card{background:#F8FAFC;border-radius:8px;padding:12px;text-align:center;border:1px solid #E2E8F0}
+.summary-card .num{font-size:28px;font-weight:800;color:#1A2B5E}
+.summary-card .lbl{font-size:12px;color:#64748B;margin-top:2px}
+.cust-name{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-assigned td{background:#F0FDF4!important}
+.row-unassigned td{background:#FFF!important}
+.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ml-auto{margin-left:auto}
+#output-section{display:none}
+#assign-section{display:none}
+.chip{background:#E2E8F0;border-radius:20px;padding:2px 10px;font-size:12px;color:#475569;display:inline-flex;align-items:center;gap:4px}
+.chip button{background:none;border:none;cursor:pointer;color:#94A3B8;font-size:14px;line-height:1;padding:0}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filter-bar select{width:auto}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span>🚛</span>
+  <div>
+    <h1>HSL Plan Builder</h1>
+    <span>สร้างแผนจ่ายงานจาก CS File → Driver Links อัตโนมัติ</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- STEP 1: Upload -->
+<div class="card">
+  <h2><span class="step-badge">1</span> Upload CS File จากฝ่ายขาย</h2>
+  <div class="upload-zone" onclick="document.getElementById('csFile').click()">
+    <input type="file" id="csFile" accept=".xlsx,.xls" onchange="handleCSUpload(this)">
+    <div class="icon">📂</div>
+    <p><strong>คลิกเพื่อเลือกไฟล์</strong> หรือลาก xlsx มาวางที่นี่</p>
+    <p>รองรับ: CS_xx-x-xx.xlsx</p>
+  </div>
+  <div id="cs-status" style="display:none;margin-top:12px"></div>
+</div>
+
+<!-- STEP 2: Assign -->
+<div class="card" id="assign-section">
+  <h2><span class="step-badge">2</span> จัดรถและรอบให้แต่ละลูกค้า</h2>
+
+  <div class="summary-grid" id="summary-grid"></div>
+
+  <div class="filter-bar">
+    <select id="filter-truck" onchange="renderTable()">
+      <option value="">🚛 ทุกคัน</option>
+    </select>
+    <select id="filter-round" onchange="renderTable()">
+      <option value="">🔄 ทุกรอบ</option>
+      <option value="1">รอบ 1</option>
+      <option value="2">รอบ 2</option>
+    </select>
+    <select id="filter-status" onchange="renderTable()">
+      <option value="">📋 ทั้งหมด</option>
+      <option value="assigned">✅ Assigned แล้ว</option>
+      <option value="unassigned">⭕ ยังไม่ Assign</option>
+    </select>
+    <div class="ml-auto flex">
+      <button class="btn btn-ghost btn-sm" onclick="clearAll()">🗑️ ล้างทั้งหมด</button>
+      <button class="btn btn-success btn-sm" onclick="generateOutput()">⚡ Generate Links</button>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto">
+  <table id="assign-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>รหัส</th>
+        <th>ลูกค้า</th>
+        <th>เวลา/รอบ</th>
+        <th>รถที่ Assign</th>
+        <th>รอบที่</th>
+        <th>Map URL (optional)</th>
+        <th>หมายเหตุ</th>
+      </tr>
+    </thead>
+    <tbody id="assign-tbody"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- STEP 3: Output -->
+<div class="card" id="output-section">
+  <h2><span class="step-badge">3</span> Driver Links & DRIVERS Config</h2>
+
+  <div class="summary-grid" id="link-summary"></div>
+
+  <div id="links-list" style="margin-bottom:16px"></div>
+
+  <div class="flex" style="margin-bottom:10px">
+    <strong style="color:#1A2B5E">📋 DRIVERS Config (paste ใส่ driver_light_v3.html)</strong>
+    <button class="btn btn-primary btn-sm copy-btn ml-auto" onclick="copyConfig()">📋 Copy Code</button>
+  </div>
+  <div class="output-box" id="config-output"></div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────
+let customers = []; // [{code, name, roundLabel}]
+let assignments = {}; // {idx: {truck, round, maps, note}}
+
+// ── Truck Options ────────────────────────────────────────────
+const TRUCKS = [
+  {id:'DRV001', label:'DRV001 – ฉัตรชัย / 7M83-0650', plate:'7M83-0650', driver:'ฉัตรชัย', type:'HSL'},
+  {id:'DRV002', label:'DRV002 – วัชรพล / 7M83-2038',  plate:'7M83-2038', driver:'วัชรพล',  type:'HSL'},
+  {id:'DRV003', label:'DRV003 – ทวีศักดิ์ / 7M83-3620',plate:'7M83-3620', driver:'ทวีศักดิ์',type:'HSL'},
+  {id:'DRV004', label:'DRV004 – พงษ์พิพัฒน์ / 7M83-1067',plate:'7M83-1067',driver:'พงษ์พิพัฒน์',type:'HSL'},
+  {id:'DRV005', label:'DRV005 – วันชัย / P ฒง-758',   plate:'Pฒง758',  driver:'วันชัย',   type:'HSL'},
+  {id:'DRV006', label:'DRV006 – อิทธิพงษ์ / P ฒง-759',plate:'Pฒง759',  driver:'อิทธิพงษ์',type:'HSL'},
+  {id:'DRV007', label:'DRV007 – อาทิตย์ / ฒห-4128',   plate:'ฒห4128',  driver:'อาทิตย์',  type:'HSL'},
+  {id:'DRV008', label:'DRV008 – ธีรวัฒน์ / ฒห-4129',  plate:'ฒห4129',  driver:'ธีรวัฒน์', type:'HSL'},
+  {id:'DRV009', label:'DRV009 – ณัฐพงษ์ / 7M80-5101', plate:'7M805101', driver:'ณัฐพงษ์', type:'TPT'},
+  {id:'DRV010', label:'DRV010 – วัชรินทร์ / 7M70-5783',plate:'7M705783', driver:'วัชรินทร์',type:'TPT'},
+  {id:'DRV011', label:'DRV011 – ศักดิ์สิทธิ์ / 7M70-7914',plate:'7M707914',driver:'ศักดิ์สิทธิ์',type:'TPT'},
+];
+
+// ── Upload Handler ───────────────────────────────────────────
+function handleCSUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'binary'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+      // Find header row (contains 'ลูกค้า')
+      let headerRow = -1;
+      for (let i=0;i<raw.length;i++) {
+        if (raw[i].join('').includes('ลูกค้า')) { headerRow = i; break; }
+      }
+      if (headerRow < 0) { alert('ไม่พบ Header "ลูกค้า" ในไฟล์'); return; }
+
+      const headers = raw[headerRow];
+      const custIdx = headers.findIndex(h => String(h).includes('ลูกค้า'));
+      const roundLabelIdx = headers.findIndex(h => String(h).includes('รอบ') || String(h).includes('round'));
+
+      // Extract unique customers preserving order
+      const seen = new Set();
+      customers = [];
+      for (let i=headerRow+1;i<raw.length;i++) {
+        const row = raw[i];
+        const cust = String(row[custIdx]||'').trim();
+        if (!cust || cust==='ลูกค้า') continue;
+        if (!seen.has(cust)) {
+          seen.add(cust);
+          // Parse code: "A085 บางวัว : บริษัท เอคโค..."
+          const m = cust.match(/^([A-Z0-9\-]+)\s*/);
+          const code = m ? m[1] : '';
+          const namePart = cust.replace(/^[A-Z0-9\-]+\s*/,'').replace(/^[^:]*:\s*/,'').trim();
+          const roundLabel = cust.match(/รอบเช้า|รอบเย็น|รอบ\s*\d+|N6|D\b|W\b/) ? 
+            cust.match(/รอบเช้า|รอบเย็น|รอบ\s*\d+|N6|D\b|W\b/)[0] : '';
+          customers.push({code, name: namePart || cust, fullLabel: cust, roundLabel});
+        }
+      }
+
+      assignments = {};
+      document.getElementById('cs-status').style.display='block';
+      document.getElementById('cs-status').innerHTML =
+        `<div class="info-bar">✅ โหลดสำเร็จ: <strong>${file.name}</strong> — พบลูกค้า <strong>${customers.length} ราย</strong></div>`;
+
+      // Populate truck filter
+      const tf = document.getElementById('filter-truck');
+      tf.innerHTML = '<option value="">🚛 ทุกคัน</option>';
+      TRUCKS.forEach(t => tf.innerHTML += `<option value="${t.id}">${t.label}</option>`);
+
+      document.getElementById('assign-section').style.display='block';
+      document.getElementById('output-section').style.display='none';
+      renderSummary();
+      renderTable();
+    } catch(err) {
+      alert('เกิดข้อผิดพลาด: '+err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ── Render Summary ───────────────────────────────────────────
+function renderSummary() {
+  const total = customers.length;
+  const assigned = Object.keys(assignments).filter(k => assignments[k].truck).length;
+  const trucks = new Set(Object.values(assignments).filter(a=>a.truck).map(a=>a.truck)).size;
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="summary-card"><div class="num">${total}</div><div class="lbl">ลูกค้าทั้งหมด</div></div>
+    <div class="summary-card"><div class="num" style="color:#16A34A">${assigned}</div><div class="lbl">Assigned แล้ว</div></div>
+    <div class="summary-card"><div class="num" style="color:#EA580C">${total-assigned}</div><div class="lbl">ยังไม่ Assign</div></div>
+    <div class="summary-card"><div class="num" style="color:#7C3AED">${trucks}</div><div class="lbl">รถที่ใช้</div></div>`;
+}
+
+// ── Render Table ─────────────────────────────────────────────
+function renderTable() {
+  const filterTruck = document.getElementById('filter-truck').value;
+  const filterRound = document.getElementById('filter-round').value;
+  const filterStatus = document.getElementById('filter-status').value;
+
+  let rows = customers.map((c,i) => ({...c, idx:i, ...(assignments[i]||{})}));
+
+  if (filterTruck) rows = rows.filter(r => r.truck === filterTruck);
+  if (filterRound) rows = rows.filter(r => String(r.round||'') === filterRound);
+  if (filterStatus==='assigned') rows = rows.filter(r => r.truck);
+  if (filterStatus==='unassigned') rows = rows.filter(r => !r.truck);
+
+  const truckOpts = TRUCKS.map(t =>
+    `<option value="${t.id}">${t.label}</option>`).join('');
+
+  const tbody = document.getElementById('assign-tbody');
+  tbody.innerHTML = rows.map(r => `
+    <tr class="${r.truck ? 'row-assigned' : 'row-unassigned'}" id="row-${r.idx}">
+      <td style="color:#94A3B8;font-size:12px">${r.idx+1}</td>
+      <td><span class="tag tag-hsl">${r.code}</span></td>
+      <td class="cust-name" title="${r.fullLabel}">
+        ${r.name}
+        ${r.roundLabel ? `<span class="tag tag-r1" style="margin-left:4px">${r.roundLabel}</span>`:''}
+      </td>
+      <td style="font-size:12px;color:#64748B">${r.roundLabel||'-'}</td>
+      <td style="min-width:220px">
+        <select onchange="setAssign(${r.idx},'truck',this.value)">
+          <option value="">— เลือกรถ —</option>
+          ${truckOpts.replace(`value="${r.truck||''}"`,`value="${r.truck||''}" selected`)}
+        </select>
+      </td>
+      <td style="min-width:90px">
+        <select onchange="setAssign(${r.idx},'round',this.value)">
+          <option value="1" ${(r.round||'1')==='1'?'selected':''}>รอบ 1</option>
+          <option value="2" ${r.round==='2'?'selected':''}>รอบ 2</option>
+        </select>
+      </td>
+      <td style="min-width:180px">
+        <input type="text" placeholder="https://maps.app.goo.gl/..." value="${r.maps||''}"
+          onchange="setAssign(${r.idx},'maps',this.value)">
+      </td>
+      <td style="min-width:120px">
+        <input type="text" placeholder="หมายเหตุ..." value="${r.note||''}"
+          onchange="setAssign(${r.idx},'note',this.value)">
+      </td>
+    </tr>`).join('');
+}
+
+function setAssign(idx, field, val) {
+  if (!assignments[idx]) assignments[idx] = {truck:'',round:'1',maps:'',note:''};
+  assignments[idx][field] = val;
+  renderSummary();
+  // Re-color row
+  const row = document.getElementById('row-'+idx);
+  if (row) row.className = assignments[idx].truck ? 'row-assigned' : 'row-unassigned';
+}
+
+function clearAll() {
+  if (!confirm('ล้าง Assignment ทั้งหมด?')) return;
+  assignments = {};
+  renderSummary();
+  renderTable();
+}
+
+// ── Generate Output ──────────────────────────────────────────
+function generateOutput() {
+  // Group by truck + round
+  const groups = {}; // {truckId_round: [customers]}
+  customers.forEach((c,i) => {
+    const a = assignments[i];
+    if (!a || !a.truck) return;
+    const key = a.truck + '_' + (a.round||'1');
+    if (!groups[key]) groups[key] = {truck:a.truck, round:a.round||'1', drops:[]};
+    groups[key].drops.push({...c, maps:a.maps||'', note:a.note||''});
+  });
+
+  if (Object.keys(groups).length === 0) {
+    alert('กรุณา Assign รถให้อย่างน้อย 1 ลูกค้าก่อน');
+    return;
+  }
+
+  // Build DRIVERS config per truck
+  const truckMap = {}; // truckId -> {r1drops, r2drops, truckInfo}
+  Object.values(groups).forEach(g => {
+    const t = TRUCKS.find(x => x.id === g.truck);
+    if (!truckMap[g.truck]) truckMap[g.truck] = {info:t, r1:[], r2:[]};
+    if (g.round==='1') truckMap[g.truck].r1 = g.drops;
+    else truckMap[g.truck].r2 = g.drops;
+  });
+
+  // Build links list
+  let linksHTML = '';
+  const today = new Date();
+  const dateStr = `${today.getDate().toString().padStart(2,'0')}${(today.getMonth()+1).toString().padStart(2,'0')}${today.getFullYear()-1957}`;
+
+  Object.entries(truckMap).forEach(([id, data]) => {
+    const t = data.info;
+    const allDrops = [...data.r1, ...data.r2];
+    const custNames = allDrops.map(d=>d.name.substring(0,20)).join(', ');
+    const link = `https://hsl-delivery.github.io/hsl-logistics/driver_light_v3.html?driver=${id}`;
+    linksHTML += `
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px">
+        <div class="flex" style="margin-bottom:8px">
+          <strong>🚛 ${t.driver} | ${t.plate}</strong>
+          <span class="tag tag-hsl" style="margin-left:4px">${t.type}</span>
+          <span class="chip">${allDrops.length} จุด</span>
+          <button class="btn btn-sm btn-ghost ml-auto" onclick="copyLink('${link}', this)">📋 Copy Link</button>
+        </div>
+        <div style="font-size:13px;color:#64748B;margin-bottom:8px">${custNames}</div>
+        <code style="font-size:12px;color:#2563EB;word-break:break-all">${link}</code>
+      </div>`;
+  });
+
+  document.getElementById('links-list').innerHTML = linksHTML;
+
+  // Build summary
+  const tCount = Object.keys(truckMap).length;
+  const dCount = customers.filter((_,i)=>assignments[i]&&assignments[i].truck).length;
+  document.getElementById('link-summary').innerHTML = `
+    <div class="summary-card"><div class="num">${tCount}</div><div class="lbl">รถที่มี Link</div></div>
+    <div class="summary-card"><div class="num" style="color:#16A34A">${dCount}</div><div class="lbl">จุดส่งรวม</div></div>
+    <div class="summary-card"><div class="num" style="color:#EA580C">${customers.length-dCount}</div><div class="lbl">ยังไม่ Assign</div></div>
+    <div class="summary-card"><div class="num" style="color:#7C3AED">${dateStr}</div><div class="lbl">Date Code</div></div>`;
+
+  // Build DRIVERS JS config
+  let config = 'const DRIVERS = [\n';
+  Object.entries(truckMap).forEach(([id, data]) => {
+    const t = data.info;
+    const r1 = data.r1;
+    const r2 = data.r2;
+    const allDrops = [...r1, ...r2];
+
+    const dropsStr = allDrops.map((d,di) => {
+      const round = di < r1.length ? 1 : 2;
+      const nick = d.name.replace(/"/g,'\\"').substring(0,30);
+      const company = d.fullLabel.replace(/"/g,'\\"').substring(0,80);
+      const cond = d.note ? d.note.replace(/"/g,'\\"') : 'ติดต่อคลังสินค้าเมื่อถึง · ตรวจใบส่งของก่อนลงสินค้า';
+      const maps = d.maps || '';
+      return `    {nick:"${nick}",company:"${company}",zone:"",pos:["${d.code}-${dateStr}"],qty:0,cond:"${cond}",maps:"${maps}",round:${round}}`;
+    }).join(',\n');
+
+    config += `  {id:"${id}",nick:"${t.driver}",name:"${t.driver}",plate:"${t.plate}",type:"6W7M",phone:"",\n   drops:[\n${dropsStr}\n   ]},\n`;
+  });
+  config += '];';
+
+  document.getElementById('config-output').textContent = config;
+  document.getElementById('output-section').style.display='block';
+  document.getElementById('output-section').scrollIntoView({behavior:'smooth'});
+}
+
+function copyConfig() {
+  const text = document.getElementById('config-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy Code'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyLink(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = '✅ Copied!';
+    setTimeout(()=>{ btn.textContent='📋 Copy Link'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
