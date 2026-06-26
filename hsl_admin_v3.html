@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSL Admin — จัดการแผนขนส่ง</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', sans-serif; background: #0f1923; color: #e8eaf0; min-height: 100vh; }
+  .header { background: linear-gradient(135deg,#1a2a3a,#0d1f2d); padding: 18px 24px; border-bottom: 2px solid #c9a84c; display:flex; align-items:center; gap:12px; }
+  .header h1 { font-size: 20px; color: #c9a84c; font-weight: 700; }
+  .header span { font-size: 13px; color: #8a9ab0; }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+  /* Steps */
+  .steps { display:flex; gap: 12px; margin-bottom: 28px; }
+  .step { flex:1; background: #1a2535; border-radius: 10px; padding: 16px; border: 2px solid #2a3a4a; cursor:pointer; transition: all .2s; text-align:center; }
+  .step.active { border-color: #c9a84c; background: #1f2d1a; }
+  .step.done   { border-color: #2e7d32; background: #1a2a1a; }
+  .step .num   { font-size: 26px; font-weight:800; color:#c9a84c; }
+  .step.done .num { color:#4caf50; }
+  .step .label { font-size: 13px; color: #8a9ab0; margin-top: 4px; }
+  .step.active .label { color:#c9a84c; }
+  .step.done .label   { color:#66bb6a; }
+
+  /* Panels */
+  .panel { background: #1a2535; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #2a3a4a; display:none; }
+  .panel.show { display:block; }
+  .panel h2 { font-size: 16px; color: #c9a84c; margin-bottom: 16px; display:flex; align-items:center; gap:8px; }
+
+  /* File input */
+  .file-zone { border: 2px dashed #3a5068; border-radius: 10px; padding: 32px; text-align:center; cursor:pointer; transition:.2s; }
+  .file-zone:hover { border-color:#c9a84c; background:#1f2d3a; }
+  .file-zone input[type=file] { display:none; }
+  .file-zone .icon { font-size: 40px; margin-bottom: 8px; }
+  .file-zone p { color:#8a9ab0; font-size:14px; }
+  .file-zone p strong { color:#c9a84c; }
+
+  /* Sheet name input */
+  .field-group { margin: 16px 0; }
+  .field-group label { font-size: 13px; color:#8a9ab0; display:block; margin-bottom:6px; }
+  .field-group input, .field-group select {
+    width:100%; padding:10px 14px; background:#0f1923; border:1px solid #2a3a4a;
+    border-radius:8px; color:#e8eaf0; font-size:14px;
+  }
+  .field-group input:focus, .field-group select:focus { outline:none; border-color:#c9a84c; }
+
+  /* Buttons */
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:12px 24px; border:none; border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; transition:.2s; }
+  .btn-gold   { background:#c9a84c; color:#0f1923; }
+  .btn-gold:hover { background:#e6c06a; }
+  .btn-green  { background:#2e7d32; color:#fff; }
+  .btn-green:hover { background:#388e3c; }
+  .btn-blue   { background:#1565c0; color:#fff; }
+  .btn-blue:hover { background:#1976d2; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+
+  /* Table */
+  .tbl-wrap { overflow-x:auto; margin-top:16px; border-radius:8px; border:1px solid #2a3a4a; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:#0f1923; color:#c9a84c; padding:10px 12px; text-align:left; font-weight:700; white-space:nowrap; }
+  td { padding:9px 12px; border-top:1px solid #1e2e3e; color:#ccd6e0; white-space:nowrap; }
+  tr:hover td { background:#1f2d3a; }
+  .badge-tg  { background:#1976d2; color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; }
+  .badge-notg{ background:#c62828; color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; }
+  .badge-ok  { background:#2e7d32; color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; }
+
+  /* Status bar */
+  #statusBar { background:#0f1923; border:1px solid #2a3a4a; border-radius:8px; padding:12px 16px; font-size:13px; color:#8a9ab0; margin-top:16px; min-height:40px; }
+  #statusBar.ok  { border-color:#2e7d32; color:#66bb6a; }
+  #statusBar.err { border-color:#c62828; color:#ef9a9a; }
+  #statusBar.loading { border-color:#c9a84c; color:#c9a84c; }
+
+  /* Summary cards */
+  .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+  .card { background:#0f1923; border-radius:8px; padding:14px 16px; border:1px solid #2a3a4a; text-align:center; }
+  .card .val { font-size:28px; font-weight:800; color:#c9a84c; }
+  .card .lbl { font-size:12px; color:#8a9ab0; margin-top:4px; }
+
+  .info-box { background:#0f1923; border-left:3px solid #c9a84c; padding:12px 16px; border-radius:0 8px 8px 0; margin-bottom:16px; font-size:13px; color:#8a9ab0; line-height:1.7; }
+  .info-box strong { color:#c9a84c; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span style="font-size:28px">🚛</span>
+  <div>
+    <h1>HSL Admin — จัดการแผนขนส่ง</h1>
+    <span>ระบบ 3 ขั้นตอน · Upload → Generate → Send</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Steps indicator -->
+  <div class="steps">
+    <div class="step active" id="stp1" onclick="goStep(1)">
+      <div class="num">1</div>
+      <div class="label">📤 Upload แผน Excel</div>
+    </div>
+    <div class="step" id="stp2" onclick="goStep(2)">
+      <div class="num">2</div>
+      <div class="label">🔗 Generate Links</div>
+    </div>
+    <div class="step" id="stp3" onclick="goStep(3)">
+      <div class="num">3</div>
+      <div class="label">📨 ส่ง Telegram</div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 1: UPLOAD ═══ -->
+  <div class="panel show" id="panel1">
+    <h2>📤 ขั้นตอนที่ 1 — Upload ไฟล์แผนขนส่ง</h2>
+
+    <div class="info-box">
+      <strong>วิธีใช้:</strong> เลือกไฟล์ Excel แผนขนส่ง (.xlsx)<br>
+      ระบบจะอ่าน Sheet <strong>แผนรถ-1</strong> อัตโนมัติ<br>
+      ยึดคอลัมน์ <strong>G (DVR)</strong> เป็น DRV ID หลัก · คอลัมน์ M-R เป็นจุดส่ง
+    </div>
+
+    <div class="file-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this)">
+      <div class="icon">📂</div>
+      <p><strong>คลิกเพื่อเลือกไฟล์</strong> หรือลากมาวางที่นี่</p>
+      <p style="margin-top:6px; font-size:12px;">รองรับ .xlsx · Sheet: แผนรถ-1 · คอลัมน์ G = DRV</p>
+    </div>
+
+    <div class="field-group" style="margin-top:16px;">
+      <label>Sheet Name (ค่าเริ่มต้น: แผนรถ-1)</label>
+      <input type="text" id="sheetName" value="แผนรถ-1" placeholder="แผนรถ-1">
+    </div>
+
+    <div id="preview1" style="display:none">
+      <div class="cards" id="cards1"></div>
+      <div class="tbl-wrap">
+        <table id="tbl1"><thead><tr><th>DRV</th><th>ชื่อ/ผู้ช่วย</th><th>ทะเบียน</th><th>รอบ</th><th>จุดส่ง</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold" id="btnUpload" onclick="uploadPlan()">📤 Upload ไป Google Sheet</button>
+      </div>
+    </div>
+
+    <div id="statusBar">รอเลือกไฟล์...</div>
+  </div>
+
+  <!-- ═══ STEP 2: GENERATE ═══ -->
+  <div class="panel" id="panel2">
+    <h2>🔗 ขั้นตอนที่ 2 — Generate Links</h2>
+
+    <div class="info-box">
+      ระบบจะอ่านข้อมูลจาก Google Sheet แล้วสร้าง Link ส่วนตัวให้แต่ละ Driver<br>
+      <strong>Link จะ Match กับ Driver Master V2</strong> โดยยึด DRV ID เป็นหลัก
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="generateLinks()">🔗 Generate Links</button>
+    </div>
+
+    <div id="preview2" style="display:none; margin-top:16px;">
+      <div class="cards" id="cards2"></div>
+      <div class="tbl-wrap">
+        <table id="tbl2">
+          <thead><tr><th>DRV</th><th>ชื่อเล่น</th><th>ชื่อ/ผู้ช่วย</th><th>ทะเบียน</th><th>TG Driver</th><th>URL</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="goStep(3)">➡️ ต่อไปขั้นที่ 3 — ส่ง Telegram</button>
+      </div>
+    </div>
+
+    <div id="statusBar2">กด Generate เพื่อสร้าง Link...</div>
+  </div>
+
+  <!-- ═══ STEP 3: SEND ═══ -->
+  <div class="panel" id="panel3">
+    <h2>📨 ขั้นตอนที่ 3 — ส่ง Link ไป Telegram</h2>
+
+    <div class="info-box">
+      ส่ง Link แผนงาน<strong>ส่วนตัว</strong>ไปให้แต่ละ Driver ผ่าน Telegram โดยตรง<br>
+      แต่ละคนจะเห็นเฉพาะแผนของตัวเอง · ส่งสรุปรวมไปกลุ่ม HSL Delivery Alert ด้วย
+    </div>
+
+    <div id="sendSummary" class="cards" style="display:none"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-green" id="btnSend" onclick="confirmSend()">📨 ส่ง Link ให้ Driver ทุกคน</button>
+    </div>
+
+    <div id="statusBar3">พร้อมส่ง — กดปุ่มด้านบน</div>
+
+    <div id="sendResult" style="display:none; margin-top:16px;">
+      <div class="tbl-wrap">
+        <table id="tbl3">
+          <thead><tr><th>DRV</th><th>ชื่อเล่น</th><th>สถานะ</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── CONFIG ────────────────────────────────────────────
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsxIARU-WPaTWzNnbwzhVUVS4OjYD6lAlnSzCtNDUwcYz3oFVLsWl3WKsXNgmr3tZpmQ/exec";
+
+var parsedRows = [];
+var generatedLinks = [];
+var currentStep = 1;
+
+// ── STEP NAV ──────────────────────────────────────────
+function goStep(n) {
+  for (var i = 1; i <= 3; i++) {
+    document.getElementById('panel' + i).classList.remove('show');
+    document.getElementById('stp' + i).classList.remove('active');
+  }
+  document.getElementById('panel' + n).classList.add('show');
+  document.getElementById('stp' + n).classList.add('active');
+  currentStep = n;
+}
+
+function markDone(n) {
+  document.getElementById('stp' + n).classList.add('done');
+}
+
+// ── STATUS BARS ───────────────────────────────────────
+function setStatus(id, msg, cls) {
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = cls || '';
+}
+
+// ── STEP 1: FILE HANDLING ─────────────────────────────
+var dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.style.borderColor='#c9a84c'; });
+dropZone.addEventListener('dragleave', function(){ dropZone.style.borderColor='#3a5068'; });
+dropZone.addEventListener('drop', function(e){
+  e.preventDefault();
+  dropZone.style.borderColor='#3a5068';
+  if (e.dataTransfer.files[0]) readExcel(e.dataTransfer.files[0]);
+});
+
+function handleFile(inp) {
+  if (inp.files[0]) readExcel(inp.files[0]);
+}
+
+function readExcel(file) {
+  setStatus('statusBar', '⏳ กำลังอ่านไฟล์ ' + file.name + '...', 'loading');
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var wb = XLSX.read(ev.target.result, {type:'binary', cellDates:true});
+      var sheetName = document.getElementById('sheetName').value.trim() || 'แผนรถ-1';
+      var ws = wb.Sheets[sheetName];
+      if (!ws) {
+        // ลองหา sheet ใกล้เคียง
+        var names = wb.SheetNames.join(', ');
+        setStatus('statusBar', '❌ ไม่พบ Sheet "' + sheetName + '" — Sheets ในไฟล์: ' + names, 'err');
+        return;
+      }
+      var data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      parseRows(data, file.name);
+    } catch(e) {
+      setStatus('statusBar', '❌ อ่านไฟล์ไม่ได้: ' + e.message, 'err');
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function parseRows(data, fname) {
+  parsedRows = [];
+  var dateStr = '';
+
+  // หา header row — row ที่มี DVR ในคอลัมน์ G (index 6)
+  var headerRow = -1;
+  for (var r = 0; r < data.length; r++) {
+    if (String(data[r][6]).trim() === 'DVR') { headerRow = r; break; }
+  }
+  if (headerRow < 0) {
+    setStatus('statusBar', '❌ ไม่พบ Header — ตรวจสอบว่าคอลัมน์ G มีคำว่า "DVR"', 'err');
+    return;
+  }
+
+  for (var i = headerRow + 1; i < data.length; i++) {
+    var row = data[i];
+    var drv = String(row[6]).trim();
+    if (!drv.match(/^DRV\d+$/)) continue;
+
+    // วันที่จากคอลัมน์ B (index 1)
+    var d = row[1];
+    if (d) {
+      if (d instanceof Date) {
+        dateStr = d.toLocaleDateString('th-TH');
+      } else {
+        dateStr = String(d).trim();
+      }
+    }
+
+    // Drops จากคอลัมน์ M-R (index 12-17)
+    var drops = [];
+    for (var c = 12; c <= 17; c++) {
+      var v = String(row[c] || '').trim();
+      if (v && v !== '') drops.push(v);
+    }
+
+    parsedRows.push({
+      drv:   drv,
+      name:  String(row[7] || '').trim(),
+      plate: String(row[5] || '').trim(),
+      round: String(row[2] || '1').trim(),
+      date:  dateStr,
+      drops: drops
+    });
+  }
+
+  if (parsedRows.length === 0) {
+    setStatus('statusBar', '❌ ไม่พบข้อมูล DRV ในไฟล์ — ตรวจสอบคอลัมน์ G', 'err');
+    return;
+  }
+
+  // แสดง preview
+  renderPreview1(fname);
+}
+
+function renderPreview1(fname) {
+  document.getElementById('preview1').style.display = 'block';
+
+  // Cards
+  document.getElementById('cards1').innerHTML =
+    '<div class="card"><div class="val">' + parsedRows.length + '</div><div class="lbl">คัน</div></div>' +
+    '<div class="card"><div class="val">' + (parsedRows[0] ? parsedRows[0].date : '') + '</div><div class="lbl">วันที่แผน</div></div>' +
+    '<div class="card"><div class="val">' + (parsedRows.reduce(function(s,r){return s+r.drops.length;},0)) + '</div><div class="lbl">จุดส่งทั้งหมด</div></div>';
+
+  // Table
+  var tbody = document.querySelector('#tbl1 tbody');
+  tbody.innerHTML = '';
+  parsedRows.forEach(function(r) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + r.drv + '</td>' +
+                   '<td>' + r.name + '</td>' +
+                   '<td>' + r.plate + '</td>' +
+                   '<td>รอบ ' + r.round + '</td>' +
+                   '<td>' + r.drops.join(' · ') + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  setStatus('statusBar', '✅ อ่านไฟล์สำเร็จ ' + fname + ' — พบ ' + parsedRows.length + ' คัน พร้อม Upload', 'ok');
+}
+
+function uploadPlan() {
+  if (parsedRows.length === 0) {
+    setStatus('statusBar', '❌ ยังไม่มีข้อมูล — กรุณาเลือกไฟล์ก่อน', 'err');
+    return;
+  }
+  var btn = document.getElementById('btnUpload');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลัง Upload...';
+  setStatus('statusBar', '⏳ กำลัง Upload ไป Google Sheet...', 'loading');
+
+  callAPI({action:'uploadPlan', rows: parsedRows}, function(res) {
+    btn.disabled = false;
+    btn.textContent = '📤 Upload ไป Google Sheet';
+    if (res && res.status === 'ok') {
+      setStatus('statusBar', '✅ ' + res.msg, 'ok');
+      markDone(1);
+      setTimeout(function(){ goStep(2); }, 1200);
+    } else {
+      setStatus('statusBar', '❌ ' + (res ? res.msg : 'เชื่อมต่อไม่ได้'), 'err');
+    }
+  });
+}
+
+// ── STEP 2: GENERATE ─────────────────────────────────
+function generateLinks() {
+  setStatus('statusBar2', '⏳ กำลัง Generate Links...', 'loading');
+
+  callAPI({action:'generateLinks'}, function(res) {
+    if (res && res.status === 'ok') {
+      generatedLinks = res.links || [];
+      renderPreview2();
+      markDone(2);
+      setStatus('statusBar2', '✅ Generate สำเร็จ ' + generatedLinks.length + ' Links', 'ok');
+    } else {
+      setStatus('statusBar2', '❌ ' + (res ? res.msg : 'เชื่อมต่อไม่ได้'), 'err');
+    }
+  });
+}
+
+function renderPreview2() {
+  document.getElementById('preview2').style.display = 'block';
+  var withTG    = generatedLinks.filter(function(l){return l.tgDriver && l.tgDriver !== '';}).length;
+  var withoutTG = generatedLinks.length - withTG;
+
+  document.getElementById('cards2').innerHTML =
+    '<div class="card"><div class="val">' + generatedLinks.length + '</div><div class="lbl">Links ทั้งหมด</div></div>' +
+    '<div class="card"><div class="val" style="color:#66bb6a">' + withTG + '</div><div class="lbl">มี TG ID ✅</div></div>' +
+    '<div class="card"><div class="val" style="color:#ef9a9a">' + withoutTG + '</div><div class="lbl">ไม่มี TG ID ⚠️</div></div>';
+
+  var tbody = document.querySelector('#tbl2 tbody');
+  tbody.innerHTML = '';
+  generatedLinks.forEach(function(lk) {
+    var hasTg = lk.tgDriver && lk.tgDriver !== '';
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + lk.drv + '</td>' +
+                   '<td>' + lk.nick + '</td>' +
+                   '<td>' + lk.name + '</td>' +
+                   '<td>' + lk.plate + '</td>' +
+                   '<td>' + (hasTg ? '<span class="badge-tg">✅ มี</span>' : '<span class="badge-notg">❌ ไม่มี</span>') + '</td>' +
+                   '<td><a href="' + lk.url + '" target="_blank" style="color:#c9a84c;font-size:11px;">เปิด Link</a></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// ── STEP 3: SEND ──────────────────────────────────────
+function confirmSend() {
+  var withTG = generatedLinks.filter(function(l){return l.tgDriver && l.tgDriver !== '';}).length;
+  if (!confirm('ยืนยันส่ง Link ไปยัง ' + withTG + ' Driver ผ่าน Telegram?\n\n⚠️ ระบบจะส่งทันที กด OK เพื่อยืนยัน')) return;
+  sendToDrivers();
+}
+
+function sendToDrivers() {
+  var btn = document.getElementById('btnSend');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังส่ง...';
+  setStatus('statusBar3', '⏳ กำลังส่ง Telegram...', 'loading');
+
+  callAPI({action:'sendToDrivers'}, function(res) {
+    btn.disabled = false;
+    btn.textContent = '📨 ส่ง Link ให้ Driver ทุกคน';
+
+    if (res && res.status === 'ok') {
+      setStatus('statusBar3', '✅ ' + res.msg, 'ok');
+      markDone(3);
+
+      // Summary cards
+      document.getElementById('sendSummary').style.display = 'grid';
+      document.getElementById('sendSummary').innerHTML =
+        '<div class="card"><div class="val" style="color:#66bb6a">' + (res.sent||0) + '</div><div class="lbl">ส่งสำเร็จ ✅</div></div>' +
+        '<div class="card"><div class="val" style="color:#ef9a9a">' + (res.skip||0) + '</div><div class="lbl">ข้าม (ไม่มี TG) ⚠️</div></div>' +
+        '<div class="card"><div class="val">' + ((res.sent||0)+(res.skip||0)) + '</div><div class="lbl">ทั้งหมด</div></div>';
+
+      // Result table
+      document.getElementById('sendResult').style.display = 'block';
+      var tbody = document.querySelector('#tbl3 tbody');
+      tbody.innerHTML = '';
+      (res.sentList || []).forEach(function(s) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="2">' + s + '</td><td><span class="badge-ok">✅ ส่งแล้ว</span></td>';
+        tbody.appendChild(tr);
+      });
+      (res.skipList || []).forEach(function(s) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="2">' + s + '</td><td><span class="badge-notg">⚠️ ข้าม</span></td>';
+        tbody.appendChild(tr);
+      });
+    } else {
+      setStatus('statusBar3', '❌ ' + (res ? res.msg : 'เชื่อมต่อไม่ได้'), 'err');
+    }
+  });
+}
+
+// ── API CALLER ────────────────────────────────────────
+function callAPI(payload, cb) {
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){ cb(d); })
+  .catch(function(e){ cb(null); });
+}
+</script>
+</body>
+</html>
